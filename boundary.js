@@ -34,7 +34,7 @@ function mouseDraggedOut(canvas, ctx, x0, y1, x1, y2, lineStyle, lineWeight) {
     y3 = 0;
     x3 = canvas.width;
     y4 = canvas.height;
-    v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+    v = recompute(x0, x1, x2, x3, y1, y2, y3, y4);
     thisX = Math.round(x0 + v * (x1 - x0));
     thisY = Math.round(y1 + v * (y2 - y1));
     x1 = thisX;
@@ -47,7 +47,7 @@ function mouseDraggedOut(canvas, ctx, x0, y1, x1, y2, lineStyle, lineWeight) {
     y3 = 0;
     x3 = canvas.width;
     y4 = 0;
-    v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+    v = recompute(x0, x1, x2, x3, y1, y2, y3, y4);
     thisX = Math.round(x0 + v * (x1 - x0));
     thisY = Math.round(y1 + v * (y2 - y1));
     x1 = thisX;
@@ -60,7 +60,7 @@ function mouseDraggedOut(canvas, ctx, x0, y1, x1, y2, lineStyle, lineWeight) {
     y3 = canvas.height;
     x3 = canvas.width;
     y4 = canvas.height;
-    v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+    v = recompute(x0, x1, x2, x3, y1, y2, y3, y4);
     thisX = Math.round(x0 + v * (x1 - x0));
     thisY = Math.round(y1 + v * (y2 - y1));
   }

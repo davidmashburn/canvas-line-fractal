@@ -3,7 +3,20 @@ import { mouseDraggedOut } from "./boundary.js";
 
 var canvas;
 var ctx;
-var mouse = [];
+var mouse = {
+  x: undefined,
+  xUp: undefined,
+  xDown: undefined,
+  xOver: undefined,
+  xOut: undefined,
+  y: undefined,
+  yUp: undefined,
+  yDown: undefined,
+  yOver: undefined,
+  yOut: undefined,
+  isMouseDragged: undefined,
+  isMouseOver: undefined,
+};
 
 function onMouseMove(e) {
   mouse.x = e.clientX - canvas.getBoundingClientRect().left;
@@ -113,22 +126,27 @@ function init() {
 }
 
 function draw() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth * 0.75 - 10;
+  canvas.height = window.innerHeight * 0.95 - 10;
 
-  //ctx.clearRect(0,0,canvas.width, canvas.height);
+  //   Ugh......
+  //    var fractalArea = getComputedStyle(document.getElementById("fractal_area"));
+  //    canvas.width = Math.floor(fractalArea.offsetWidth.slice(0, -2)) - 20;
+  //    canvas.height = Math.floor(fractalArea.offsetHeight.slice(0, -2)) - 20;
+
+  // ctx.clearRect(0,0,canvas.width, canvas.height);
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-//   ctx.fillStyle = "rgba(0,255,255,0.8)";
-//   ctx.fillRect(mouse.xOut - 20, mouse.yOut - 20, 40, 40);
-//   ctx.fillStyle = "rgb(0,0,0)";
-//   ctx.fillRect(mouse.xOut - 2, mouse.yOut - 2, 4, 4);
+  //   ctx.fillStyle = "rgba(0,255,255,0.8)";
+  //   ctx.fillRect(mouse.xOut - 20, mouse.yOut - 20, 40, 40);
+  //   ctx.fillStyle = "rgb(0,0,0)";
+  //   ctx.fillRect(mouse.xOut - 2, mouse.yOut - 2, 4, 4);
 
-//   ctx.fillStyle = "rgba(255,255,0,0.8)";
-//   ctx.fillRect(mouse.xOver - 20, mouse.yOver - 20, 40, 40);
-//   ctx.fillStyle = "rgb(0,0,0)";
-//   ctx.fillRect(mouse.xOver - 2, mouse.yOver - 2, 4, 4);
+  //   ctx.fillStyle = "rgba(255,255,0,0.8)";
+  //   ctx.fillRect(mouse.xOver - 20, mouse.yOver - 20, 40, 40);
+  //   ctx.fillStyle = "rgb(0,0,0)";
+  //   ctx.fillRect(mouse.xOver - 2, mouse.yOver - 2, 4, 4);
 
   ctx.fillStyle = "rgb(255,0,0)";
   ctx.fillRect(mouse.xDown - 15, mouse.yDown - 15, 30, 30);
