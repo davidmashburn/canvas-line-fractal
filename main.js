@@ -4,17 +4,6 @@ var canvas;
 var ctx;
 var mouse = [];
 
-mouse.INTERSECTION = 1;
-// compute intersection between line mouseDown - mouseUp and edge of canvas
-mouse.LOCK_INSIDE = 2;
-// lock mouse cursor inside
-mouse.MOUSEOUT_POS = 3;
-// use position where mouse left canvas
-
-mouse.mode = mouse.INTERSECTION;
-
-///////////////////////////////
-
 function circle(x, y, r) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2, true);
@@ -110,29 +99,6 @@ function line(x1, y1, x2, y2) {
 function onMouseMove(e) {
     mouse.x = e.clientX - canvas.getBoundingClientRect().left;
     mouse.y = e.clientY - canvas.getBoundingClientRect().top;
-    
-
-    if (!mouse.isMouseOver) {
-        if (mouse.mode == mouse.LOCK_INSIDE) {
-
-            if (mouse.isMouseDragged) {
-                var edgeIntersect = mouseDraggedOut(mouse.xDown, mouse.yDown, mouse.x, mouse.y, "rgba(255, 0, 0, 0.2)", 2);
-            } else {
-                ctx.save();
-                ctx.strokeStyle = "rgba(100,100,100,0.07)";
-                ctx.lineWidth = 15;
-                var edgeIntersect = mouseDraggedOut(canvas.width / 2, canvas.height / 2, mouse.x, mouse.y, "rgba(255, 0, 0, 0.2)", 2);
-                ctx.lineCap = "round";
-                line(canvas.width / 2, canvas.height / 2, edgeIntersect.x, edgeIntersect.y);
-            }
-            mouse.x = edgeIntersect.x;
-            mouse.y = edgeIntersect.y;
-
-            mouse.xOut = undefined;
-            mouse.yOut = undefined;
-            //mouse.isMouseOver = true;
-        }
-    }
 }
 
 function onMouseDown(e) {
@@ -147,24 +113,12 @@ function onMouseUp(e) {
         mouse.yUp = e.clientY - canvas.getBoundingClientRect().top;
 
         // FIRST OPTION
-        if (mouse.mode == mouse.INTERSECTION) {
-            if (!mouse.isMouseOver) {
-
-                //ctx.save();
-                //ctx.strokeStyle = "rgba(255,0,0,1)";
-                //ctx.lineWidth = 10;
-                var edgeIntersect = mouseDraggedOut(mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp, "rgba(255,0,0,1)", 10);
-                //ctx.restore();
-
-                mouse.xUp = edgeIntersect.x;
-                mouse.yUp = edgeIntersect.y;
-            }
+        if (!mouse.isMouseOver) {
+            var edgeIntersect = mouseDraggedOut(mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp, "rgba(255,0,0,1)", 10);
+            mouse.xUp = edgeIntersect.x;
+            mouse.yUp = edgeIntersect.y;
         }
-        // SECOND OPTION
-        if (mouse.mode == mouse.LOCK_INSIDE) {
-            mouse.xUp = mouse.x;
-            mouse.yUp = mouse.y;
-        }
+        
         mouse.isMouseDragged = false;
     }
 }
@@ -183,17 +137,6 @@ function onMouseOut(e) {
         mouse.yOut = 0;
     if (mouse.yOut > canvas.height)
         mouse.yOut = canvas.height;
-
-    // THIRD OPTION
-    if (mouse.isMouseDragged) {
-        if (mouse.mode == mouse.MOUSEOUT_POS) {
-            mouse.xUp = mouse.xOut;
-            mouse.yUp = mouse.yOut;
-            mouse.isMouseDragged = false;
-        }
-    }
-
-    //console.log("MouseOut : " + mouse.xOut + "," + mouse.yOut);
 }
 
 function onMouseOver(e) {
