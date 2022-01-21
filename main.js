@@ -120,15 +120,15 @@ function draw() {
   ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "rgba(0,255,255,0.8)";
-  ctx.fillRect(mouse.xOut - 20, mouse.yOut - 20, 40, 40);
-  ctx.fillStyle = "rgb(0,0,0)";
-  ctx.fillRect(mouse.xOut - 2, mouse.yOut - 2, 4, 4);
+//   ctx.fillStyle = "rgba(0,255,255,0.8)";
+//   ctx.fillRect(mouse.xOut - 20, mouse.yOut - 20, 40, 40);
+//   ctx.fillStyle = "rgb(0,0,0)";
+//   ctx.fillRect(mouse.xOut - 2, mouse.yOut - 2, 4, 4);
 
-  ctx.fillStyle = "rgba(255,255,0,0.8)";
-  ctx.fillRect(mouse.xOver - 20, mouse.yOver - 20, 40, 40);
-  ctx.fillStyle = "rgb(0,0,0)";
-  ctx.fillRect(mouse.xOver - 2, mouse.yOver - 2, 4, 4);
+//   ctx.fillStyle = "rgba(255,255,0,0.8)";
+//   ctx.fillRect(mouse.xOver - 20, mouse.yOver - 20, 40, 40);
+//   ctx.fillStyle = "rgb(0,0,0)";
+//   ctx.fillRect(mouse.xOver - 2, mouse.yOver - 2, 4, 4);
 
   ctx.fillStyle = "rgb(255,0,0)";
   ctx.fillRect(mouse.xDown - 15, mouse.yDown - 15, 30, 30);
