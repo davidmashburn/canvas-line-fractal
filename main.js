@@ -4,11 +4,20 @@ var canvas;
 var ctx;
 var mouse = [];
 
-function circle(x, y, r) {
+function circle(ctx, x, y, r) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2, true);
     ctx.fill();
     ctx.closePath();
+}
+
+function line(ctx, x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.closePath();
+
 }
 
 function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
@@ -70,26 +79,17 @@ function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
         if (lineWeight != undefined) {
             ctx.lineWidth = lineWeight;
         }
-        line(x3, y3, x4, y4);
+        line(ctx, x3, y3, x4, y4);
         ctx.restore();
 
     } else {
-        line(x3, y3, x4, y4);
+        line(ctx, x3, y3, x4, y4);
     }
 
     return {
         'x' : thisX,
         'y' : thisY
     };
-
-}
-
-function line(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.closePath();
 
 }
 
@@ -234,7 +234,7 @@ function draw() {
     /// actual cursor
     // ctx.fillStyle = "rgb(100,100,255)";
     // ctx.strokeStyle = "rgb(0,0,100)";
-    // circle(mouse.x, mouse.y, 10);
+    // circle(ctx, mouse.x, mouse.y, 10);
     // ctx.stroke();
 
     // ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
@@ -252,10 +252,10 @@ function draw() {
             edgeIntersect.x = mouse.x;
             edgeIntersect.y = mouse.y;
         }
-        line(mouse.xDown, mouse.yDown, edgeIntersect.x, edgeIntersect.y);
+        line(ctx, mouse.xDown, mouse.yDown, edgeIntersect.x, edgeIntersect.y);
         ctx.strokeStyle = "rgba(0,0,0,0.07)";
-        circle(mouse.xDown, mouse.yDown, 20);
-        circle(edgeIntersect.x, edgeIntersect.y, 20);
+        circle(ctx, mouse.xDown, mouse.yDown, 20);
+        circle(ctx, edgeIntersect.x, edgeIntersect.y, 20);
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -264,7 +264,7 @@ function draw() {
         ctx.save();
         ctx.strokeStyle = "rgba(0,0,0,1)";
         ctx.lineWidth = 1;
-        line(mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp);
+        line(ctx, mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp);
         ctx.restore();
     }
 }
