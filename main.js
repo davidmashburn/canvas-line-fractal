@@ -4,18 +4,26 @@ var canvas;
 var ctx;
 var mouse = [];
 
+function recompute(x1, x2, x3, x4, y1, y2, y3, y4) { 
+    return (
+        ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3))
+         / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+    )
+}
+
 function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
     // x1,y1 = mouseDown;  x2,y2 = mouseUp
 
-    var x3, y3, x4, y4, thisX, thisY;
+    var v, x3, y3, x4, y4, thisX, thisY;
 
     if (x2 < 0) {// left edge
         x3 = 0;
         y3 = 0;
         x4 = 0;
         y4 = canvas.height;
-        thisX = Math.round(x1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (x2 - x1));
-        thisY = Math.round(y1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (y2 - y1));
+        v = recompute(x1, x2, x3, x4, y1, y2, y3, y4);
+        thisX = Math.round(x1 + v * (x2 - x1));
+        thisY = Math.round(y1 + v * (y2 - y1));
 
         // I must do this for other checks, else corners (when two conditions are true) couldn't be handled
         // So I'll handle it one after another
@@ -29,8 +37,9 @@ function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
         y3 = 0;
         x4 = canvas.width;
         y4 = canvas.height;
-        thisX = Math.round(x1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (x2 - x1));
-        thisY = Math.round(y1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (y2 - y1));
+        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
+        thisX = Math.round(x1 + v * (x2 - x1));
+        thisY = Math.round(y1 + v * (y2 - y1));
         x2 = thisX;
         y2 = thisY;
     }
@@ -40,8 +49,9 @@ function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
         y3 = 0;
         x4 = canvas.width;
         y4 = 0;
-        thisX = Math.round(x1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (x2 - x1));
-        thisY = Math.round(y1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (y2 - y1));
+        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
+        thisX = Math.round(x1 + v * (x2 - x1));
+        thisY = Math.round(y1 + v * (y2 - y1));
         x2 = thisX;
         y2 = thisY;
     }
@@ -51,8 +61,9 @@ function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
         y3 = canvas.height;
         x4 = canvas.width;
         y4 = canvas.height;
-        thisX = Math.round(x1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (x2 - x1));
-        thisY = Math.round(y1 + (((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))) * (y2 - y1));
+        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
+        thisX = Math.round(x1 + v * (x2 - x1));
+        thisY = Math.round(y1 + v * (y2 - y1));
     }
 
     if ((lineStyle != undefined) || (lineWeight != undefined)) {
