@@ -4,65 +4,65 @@ var canvas;
 var ctx;
 var mouse = [];
 
-function recompute(x1, x2, x3, x4, y1, y2, y3, y4) { 
+function recompute(x0, x1, x2, x3, y1, y2, y3, y4) {
     return (
-        ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3))
-         / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+        ((x3 - x2) * (y1 - y3) - (y4 - y3) * (x0 - x2))
+         / ((y4 - y3) * (x1 - x0) - (x3 - x2) * (y2 - y1))
     )
 }
 
-function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
-    // x1,y1 = mouseDown;  x2,y2 = mouseUp
+function mouseDraggedOut(x0, y1, x1, y2, lineStyle, lineWeight) {
+    // x0,y1 = mouseDown;  x1,y2 = mouseUp
 
-    var v, x3, y3, x4, y4, thisX, thisY;
+    var v, x2, y3, x3, y4, thisX, thisY;
 
-    if (x2 < 0) {// left edge
-        x3 = 0;
+    if (x1 < 0) {// left edge
+        x2 = 0;
         y3 = 0;
-        x4 = 0;
+        x3 = 0;
         y4 = canvas.height;
-        v = recompute(x1, x2, x3, x4, y1, y2, y3, y4);
-        thisX = Math.round(x1 + v * (x2 - x1));
+        v = recompute(x0, x1, x2, x3, y1, y2, y3, y4);
+        thisX = Math.round(x0 + v * (x1 - x0));
         thisY = Math.round(y1 + v * (y2 - y1));
 
         // I must do this for other checks, else corners (when two conditions are true) couldn't be handled
         // So I'll handle it one after another
-        x2 = thisX;
+        x1 = thisX;
         y2 = thisY;
 
     }
 
-    if (x2 > canvas.width) {// right edge
-        x3 = canvas.width;
+    if (x1 > canvas.width) {// right edge
+        x2 = canvas.width;
         y3 = 0;
-        x4 = canvas.width;
+        x3 = canvas.width;
         y4 = canvas.height;
-        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
-        thisX = Math.round(x1 + v * (x2 - x1));
+        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+        thisX = Math.round(x0 + v * (x1 - x0));
         thisY = Math.round(y1 + v * (y2 - y1));
-        x2 = thisX;
+        x1 = thisX;
         y2 = thisY;
     }
 
     if (y2 < 0) {// top edge
-        x3 = 0;
+        x2 = 0;
         y3 = 0;
-        x4 = canvas.width;
+        x3 = canvas.width;
         y4 = 0;
-        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
-        thisX = Math.round(x1 + v * (x2 - x1));
+        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+        thisX = Math.round(x0 + v * (x1 - x0));
         thisY = Math.round(y1 + v * (y2 - y1));
-        x2 = thisX;
+        x1 = thisX;
         y2 = thisY;
     }
 
     if (y2 > canvas.height) {// bottom edge
-        x3 = 0;
+        x2 = 0;
         y3 = canvas.height;
-        x4 = canvas.width;
+        x3 = canvas.width;
         y4 = canvas.height;
-        v = recompute([x1, x2, x3, x4], [y1, y2, y3, y4]);
-        thisX = Math.round(x1 + v * (x2 - x1));
+        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
+        thisX = Math.round(x0 + v * (x1 - x0));
         thisY = Math.round(y1 + v * (y2 - y1));
     }
 
@@ -74,11 +74,11 @@ function mouseDraggedOut(x1, y1, x2, y2, lineStyle, lineWeight) {
         if (lineWeight != undefined) {
             ctx.lineWidth = lineWeight;
         }
-        line(ctx, x3, y3, x4, y4);
+        line(ctx, x2, y3, x3, y4);
         ctx.restore();
 
     } else {
-        line(ctx, x3, y3, x4, y4);
+        line(ctx, x2, y3, x3, y4);
     }
 
     return {
