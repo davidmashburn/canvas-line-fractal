@@ -1,95 +1,9 @@
-import {circle, line} from "./drawing.js"
+import { circle, line } from "./drawing.js"
+import { mouseDraggedOut } from "./boundary.js"
 
 var canvas;
 var ctx;
 var mouse = [];
-
-function recompute(x0, x1, x2, x3, y1, y2, y3, y4) {
-    return (
-        ((x3 - x2) * (y1 - y3) - (y4 - y3) * (x0 - x2))
-         / ((y4 - y3) * (x1 - x0) - (x3 - x2) * (y2 - y1))
-    )
-}
-
-function mouseDraggedOut(x0, y1, x1, y2, lineStyle, lineWeight) {
-    // x0,y1 = mouseDown;  x1,y2 = mouseUp
-
-    var v, x2, y3, x3, y4, thisX, thisY;
-
-    if (x1 < 0) {// left edge
-        x2 = 0;
-        y3 = 0;
-        x3 = 0;
-        y4 = canvas.height;
-        v = recompute(x0, x1, x2, x3, y1, y2, y3, y4);
-        thisX = Math.round(x0 + v * (x1 - x0));
-        thisY = Math.round(y1 + v * (y2 - y1));
-
-        // I must do this for other checks, else corners (when two conditions are true) couldn't be handled
-        // So I'll handle it one after another
-        x1 = thisX;
-        y2 = thisY;
-
-    }
-
-    if (x1 > canvas.width) {// right edge
-        x2 = canvas.width;
-        y3 = 0;
-        x3 = canvas.width;
-        y4 = canvas.height;
-        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
-        thisX = Math.round(x0 + v * (x1 - x0));
-        thisY = Math.round(y1 + v * (y2 - y1));
-        x1 = thisX;
-        y2 = thisY;
-    }
-
-    if (y2 < 0) {// top edge
-        x2 = 0;
-        y3 = 0;
-        x3 = canvas.width;
-        y4 = 0;
-        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
-        thisX = Math.round(x0 + v * (x1 - x0));
-        thisY = Math.round(y1 + v * (y2 - y1));
-        x1 = thisX;
-        y2 = thisY;
-    }
-
-    if (y2 > canvas.height) {// bottom edge
-        x2 = 0;
-        y3 = canvas.height;
-        x3 = canvas.width;
-        y4 = canvas.height;
-        v = recompute([x0, x1, x2, x3], [y1, y2, y3, y4]);
-        thisX = Math.round(x0 + v * (x1 - x0));
-        thisY = Math.round(y1 + v * (y2 - y1));
-    }
-
-    if ((lineStyle != undefined) || (lineWeight != undefined)) {
-        ctx.save();
-        if (lineStyle != undefined) {
-            ctx.strokeStyle = lineStyle;
-        }
-        if (lineWeight != undefined) {
-            ctx.lineWidth = lineWeight;
-        }
-        line(ctx, x2, y3, x3, y4);
-        ctx.restore();
-
-    } else {
-        line(ctx, x2, y3, x3, y4);
-    }
-
-    return {
-        'x' : thisX,
-        'y' : thisY
-    };
-
-}
-
-/////////////////////////////////////////
-// Mouse events
 
 function onMouseMove(e) {
     mouse.x = e.clientX - canvas.getBoundingClientRect().left;
@@ -109,7 +23,7 @@ function onMouseUp(e) {
 
         // FIRST OPTION
         if (!mouse.isMouseOver) {
-            var edgeIntersect = mouseDraggedOut(mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp, "rgba(255,0,0,1)", 10);
+            var edgeIntersect = mouseDraggedOut(canvas, ctx, mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp, "rgba(255,0,0,1)", 10);
             mouse.xUp = edgeIntersect.x;
             mouse.yUp = edgeIntersect.y;
         }
@@ -140,11 +54,6 @@ function onMouseOver(e) {
     mouse.isMouseOver = true;
 }
 
-//////////////////////////
-
-///////+++      M  A  I  N      F   U   N   C   T   I  O   N   S
-
-/////////////////////////////////////////////////////////////////
 // Compatibility animation loop
 window.requestAnimFrame = (function(callback) {
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
@@ -152,17 +61,12 @@ window.requestAnimFrame = (function(callback) {
         window.setTimeout(callback, 0);
     };
 })();
-/////////////////////////////////////////////////////////////////
 
-//+++ L O O P ///////////////////////////////////////////////////////////////
 function loop() {
     draw();
     requestAnimFrame(loop);
 }
 
-//+++ L O O P ///////////////////////////////////////////////////////////////
-
-//+++ I N I T ///////////////////////////////////////////////////////////////
 function init() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
@@ -194,10 +98,6 @@ function init() {
     };
 }
 
-//--- I N I T ///////////////////////////////////////////////////////////////
-
-
-//+++ D R A W ///////////////////////////////////////////////////////////////
 function draw() {
     canvas.width=window.innerWidth;
     canvas.height=window.innerHeight;
@@ -242,7 +142,7 @@ function draw() {
         ctx.lineWidth = 15;
         ctx.lineCap = "round";
 
-        var edgeIntersect = mouseDraggedOut(mouse.xDown, mouse.yDown, mouse.x, mouse.y, "rgba(0, 0, 255, 1)", 2);
+        var edgeIntersect = mouseDraggedOut(canvas, ctx, mouse.xDown, mouse.yDown, mouse.x, mouse.y, "rgba(0, 0, 255, 1)", 2);
         if (edgeIntersect.x === undefined || edgeIntersect.y === undefined) {
             edgeIntersect.x = mouse.x;
             edgeIntersect.y = mouse.y;
@@ -263,9 +163,5 @@ function draw() {
         ctx.restore();
     }
 }
-
-//--- D R A W ///////////////////////////////////////////////////////////////
-
-///////---      M  A  I  N      F   U   N   C   T   I  O   N   S
 
 init();
