@@ -107,13 +107,13 @@ function init() {
     false
   );
 
-  window.addEventListener("mousemove", onMouseMove, false);
+  window.addEventListener("pointermove", onMouseMove, false);
 
-  canvas.addEventListener("mousedown", onMouseDown, false);
-  window.addEventListener("mouseup", onMouseUp, false);
+  canvas.addEventListener("pointerdown", onMouseDown, false);
+  window.addEventListener("pointerup", onMouseUp, false);
 
-  canvas.addEventListener("mouseover", onMouseOver, false);
-  canvas.addEventListener("mouseout", onMouseOut, false);
+  canvas.addEventListener("pointerover", onMouseOver, false);
+  canvas.addEventListener("pointerout", onMouseOut, false);
 
   loop();
 
