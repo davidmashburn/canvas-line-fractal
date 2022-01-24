@@ -62,7 +62,7 @@ var Arc = function (x, y, radius, radians = Math.PI * 2) {
   };
 };
 
-var MouseTouchTracker = function (canvas, callback) {
+var MouseTouchTracker = function (window, canvas, callback) {
   function processEvent(evt) {
     var rect = canvas.getBoundingClientRect();
     var offsetTop = rect.top;
@@ -98,13 +98,19 @@ var MouseTouchTracker = function (canvas, callback) {
     callback("move", coords.x, coords.y);
   }
 
-  canvas.ontouchmove = onMove;
-  canvas.onmousemove = onMove;
+  function onResize(evt) {
+    callback("resize", window.innerWidth, window.innerHeight);
+  }
+
+  window.onresize = onResize;
+  
+  window.ontouchmove = onMove;
+  window.onmousemove = onMove;
 
   canvas.ontouchstart = onDown;
   canvas.onmousedown = onDown;
-  canvas.ontouchend = onUp;
-  canvas.onmouseup = onUp;
+  window.ontouchend = onUp;
+  window.onmouseup = onUp;
 };
 
 function init() {
@@ -113,13 +119,18 @@ function init() {
   var startX = 0;
   var startY = 0;
 
+  canvas.width = window.innerWidth * 0.75 - 10;
+  canvas.height = window.innerHeight * 0.95 - 10;
+
   var rectangle = new Rectangle(50, 50, 100, 100);
   rectangle.render(ctx);
 
   var circle = new Arc(200, 140, 50);
   circle.render(ctx);
+  
+  var canvasIsDragging = false;
 
-  var mtt = new MouseTouchTracker(canvas, function (evtType, x, y) {
+  var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     switch (evtType) {
@@ -130,11 +141,13 @@ function init() {
           shape.isDragging = shape.isHit(x, y);
           return shape.isDragging;
         });
+        canvasIsDragging = true;
         break;
 
       case "up":
         rectangle.isDragging = false;
         circle.isDragging = false;
+        canvasIsDragging = false;
         break;
 
       case "move":
@@ -147,64 +160,21 @@ function init() {
           rectangle.x += dx;
           rectangle.y += dy;
         }
-
-        if (circle.isDragging) {
+        else if (circle.isDragging) {
           circle.x += dx;
           circle.y += dy;
         }
-        break;
-    }
-
-    circle.render(ctx);
-    rectangle.render(ctx);
-  });
-
-  var canvas = document.getElementById("canvas");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  var ctx = canvas.getContext("2d");
-  var startX = 0;
-  var startY = 0;
-
-  var rectangle = new Rectangle(50, 50, 100, 100);
-  rectangle.render(ctx);
-
-  var circle = new Arc(200, 140, 50);
-  circle.render(ctx);
-
-  var mtt = new MouseTouchTracker(canvas, function (evtType, x, y) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    switch (evtType) {
-      case "down":
-        startX = x;
-        startY = y;
-        [rectangle, circle].some(function (shape) {
-          shape.isDragging = shape.isHit(x, y);
-          return shape.isDragging;
-        });
-        break;
-
-      case "up":
-        rectangle.isDragging = false;
-        circle.isDragging = false;
-        break;
-
-      case "move":
-        var dx = x - startX;
-        var dy = y - startY;
-        startX = x;
-        startY = y;
-
-        if (rectangle.isDragging) {
+        else if (canvasIsDragging) {
           rectangle.x += dx;
           rectangle.y += dy;
-        }
-
-        if (circle.isDragging) {
           circle.x += dx;
           circle.y += dy;
         }
+        break;
+
+      case "resize":
+        canvas.width = window.innerWidth * 0.75 - 10;
+        canvas.height = window.innerHeight * 0.95 - 10;
         break;
     }
 
