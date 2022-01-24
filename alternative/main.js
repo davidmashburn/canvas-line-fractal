@@ -1,8 +1,9 @@
-var Rectangle = function (x, y, width, height) {
+var Rectangle = function (x, y, width, height, color="#2793ef") {
   this.x = x;
   this.y = y;
   this.width = width;
   this.height = height;
+  this.color=color;
   this.isDragging = false;
 
   this.render = function (ctx) {
@@ -15,7 +16,7 @@ var Rectangle = function (x, y, width, height) {
       this.width,
       this.height
     );
-    ctx.fillStyle = "#2793ef";
+    ctx.fillStyle = this.color;
     ctx.fill();
 
     ctx.restore();
@@ -34,11 +35,12 @@ var Rectangle = function (x, y, width, height) {
   };
 };
 
-var Arc = function (x, y, radius, radians = Math.PI * 2) {
+var Arc = function (x, y, radius, radians = Math.PI * 2, color="#2793ef") {
   this.x = x;
   this.y = y;
   this.radius = radius;
   this.radians = radians;
+  this.color=color;
   this.isDragging = false;
 
   this.render = function (ctx) {
@@ -46,7 +48,7 @@ var Arc = function (x, y, radius, radians = Math.PI * 2) {
 
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
-    ctx.fillStyle = "#2793ef";
+    ctx.fillStyle = this.color;
     ctx.fill();
 
     ctx.restore();
@@ -115,13 +117,20 @@ var MouseTouchTracker = function (window, canvas, callback) {
 
 function init() {
   var canvas = document.getElementById("canvas");
+  var offScreenCanvas = document.createElement('canvas');
   var ctx = canvas.getContext("2d");
+  var ctx_off = offScreenCanvas.getContext("2d");
   var startX = 0;
   var startY = 0;
 
   canvas.width = window.innerWidth * 0.75 - 10;
   canvas.height = window.innerHeight * 0.95 - 10;
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
 
+  var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
+  rectangle_off.render(ctx_off);
+  
   var rectangle = new Rectangle(50, 50, 100, 100);
   rectangle.render(ctx);
 
@@ -132,6 +141,7 @@ function init() {
 
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(offScreenCanvas, 0, 0);
 
     switch (evtType) {
       case "down":
@@ -175,6 +185,8 @@ function init() {
       case "resize":
         canvas.width = window.innerWidth * 0.75 - 10;
         canvas.height = window.innerHeight * 0.95 - 10;
+        offScreenCanvas.width = canvas.width;
+        offScreenCanvas.height = canvas.height;
         break;
     }
 
