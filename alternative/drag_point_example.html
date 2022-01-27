@@ -48,7 +48,15 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
         height: 100%;
         float: left;
       }
-      canvas {
+      #fractalArea {
+        position:relative;
+      }
+      #fractalArea > canvas {
+        position:absolute;
+        left:0;
+        top:0;
+      }
+      mainCanvas {
         background-color: #bbb;
         /* display: block;
         top: 0;
@@ -70,8 +78,9 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
         <br />
       </div>
       <div class="main">
-        <div id="fractal_area">
-          <canvas id="canvas"></canvas>
+        <div id="fractalArea">
+          <canvas id="offScreenCanvas"></canvas>
+          <canvas id="mainCanvas"></canvas>
         </div>
       </div>
     </div>

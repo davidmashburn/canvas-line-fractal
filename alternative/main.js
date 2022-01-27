@@ -116,8 +116,8 @@ var MouseTouchTracker = function (window, canvas, callback) {
 };
 
 function init() {
-  var canvas = document.getElementById("canvas");
-  var offScreenCanvas = document.createElement('canvas');
+  var canvas = document.getElementById("mainCanvas");
+  var offScreenCanvas = document.getElementById('offScreenCanvas');
   var ctx = canvas.getContext("2d");
   var ctx_off = offScreenCanvas.getContext("2d");
   var startX = 0;
@@ -141,7 +141,6 @@ function init() {
 
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(offScreenCanvas, 0, 0);
 
     switch (evtType) {
       case "down":
@@ -187,9 +186,11 @@ function init() {
         canvas.height = window.innerHeight * 0.95 - 10;
         offScreenCanvas.width = canvas.width;
         offScreenCanvas.height = canvas.height;
+        rectangle_off.render(ctx_off);
         break;
     }
 
+    ctx.drawImage(offScreenCanvas, 0, 0);
     circle.render(ctx);
     rectangle.render(ctx);
   });
