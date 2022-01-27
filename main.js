@@ -1,208 +1,199 @@
-import { circle, line } from "./drawing.js";
-import { mouseDraggedOut } from "./boundary.js";
+var Rectangle = function (x, y, width, height, color="#2793ef") {
+  this.x = x;
+  this.y = y;
+  this.width = width;
+  this.height = height;
+  this.color=color;
+  this.isDragging = false;
 
-var canvas;
-var ctx;
-var mouse = {
-  x: undefined,
-  xUp: undefined,
-  xDown: undefined,
-  xOver: undefined,
-  xOut: undefined,
-  y: undefined,
-  yUp: undefined,
-  yDown: undefined,
-  yOver: undefined,
-  yOut: undefined,
-  isMouseDragged: undefined,
-  isMouseOver: undefined,
+  this.render = function (ctx) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(
+      this.x - this.width * 0.5,
+      this.y - this.height * 0.5,
+      this.width,
+      this.height
+    );
+    ctx.fillStyle = this.color;
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    if (
+      x > this.x - this.width * 0.5 &&
+      y > this.y - this.height * 0.5 &&
+      x < this.x + this.width - this.width * 0.5 &&
+      y < this.y + this.height - this.height * 0.5
+    ) {
+      return true;
+    }
+    return false;
+  };
 };
 
-function onMouseMove(e) {
-  mouse.x = e.clientX - canvas.getBoundingClientRect().left;
-  mouse.y = e.clientY - canvas.getBoundingClientRect().top;
-}
+var Arc = function (x, y, radius, radians = Math.PI * 2, color="#2793ef") {
+  this.x = x;
+  this.y = y;
+  this.radius = radius;
+  this.radians = radians;
+  this.color=color;
+  this.isDragging = false;
 
-function onMouseDown(e) {
-  mouse.xDown = e.clientX - canvas.getBoundingClientRect().left;
-  mouse.yDown = e.clientY - canvas.getBoundingClientRect().top;
-  mouse.isMouseDragged = true;
-}
+  this.render = function (ctx) {
+    ctx.save();
 
-function onMouseUp(e) {
-  if (mouse.isMouseDragged) {
-    mouse.xUp = e.clientX - canvas.getBoundingClientRect().left;
-    mouse.yUp = e.clientY - canvas.getBoundingClientRect().top;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
+    ctx.fillStyle = this.color;
+    ctx.fill();
 
-    if (!mouse.isMouseOver) {
-      var edgeIntersect = mouseDraggedOut(
-        canvas,
-        ctx,
-        mouse.xDown,
-        mouse.yDown,
-        mouse.xUp,
-        mouse.yUp,
-        "rgba(255,0,0,1)",
-        10
-      );
-      mouse.xUp = edgeIntersect.x;
-      mouse.yUp = edgeIntersect.y;
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    var dx = this.x - x;
+    var dy = this.y - y;
+    if (dx * dx + dy * dy < this.radius * this.radius) {
+      return true;
     }
+    return false;
+  };
+};
 
-    mouse.isMouseDragged = false;
+var MouseTouchTracker = function (window, canvas, callback) {
+  function processEvent(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var offsetTop = rect.top;
+    var offsetLeft = rect.left;
+
+    if (evt.touches) {
+      return {
+        x: evt.touches[0].clientX - offsetLeft,
+        y: evt.touches[0].clientY - offsetTop,
+      };
+    } else {
+      return {
+        x: evt.clientX - offsetLeft,
+        y: evt.clientY - offsetTop,
+      };
+    }
   }
-}
 
-function onMouseOut(e) {
-  mouse.xOut = e.clientX - canvas.getBoundingClientRect().left;
-  mouse.yOut = e.clientY - canvas.getBoundingClientRect().top;
-  mouse.isMouseOver = false;
+  function onDown(evt) {
+    evt.preventDefault();
+    var coords = processEvent(evt);
+    callback("down", coords.x, coords.y);
+  }
 
-  // fix after swift move with mouse, when position is beyond canvas (put it on edge of canvas)
-  if (mouse.xOut < 0) mouse.xOut = 0;
-  if (mouse.xOut > canvas.width) mouse.xOut = canvas.width;
-  if (mouse.yOut < 0) mouse.yOut = 0;
-  if (mouse.yOut > canvas.height) mouse.yOut = canvas.height;
-}
+  function onUp(evt) {
+    evt.preventDefault();
+    callback("up");
+  }
 
-function onMouseOver(e) {
-  mouse.xOver = e.clientX - canvas.getBoundingClientRect().left;
-  mouse.yOver = e.clientY - canvas.getBoundingClientRect().top;
-  mouse.isMouseOver = true;
-}
+  function onMove(evt) {
+    evt.preventDefault();
+    var coords = processEvent(evt);
+    callback("move", coords.x, coords.y);
+  }
 
-// Compatibility animation loop
-window.requestAnimFrame = (function (callback) {
-  return (
-    window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function (callback) {
-      window.setTimeout(callback, 0);
-    }
-  );
-})();
+  function onResize(evt) {
+    callback("resize", window.innerWidth, window.innerHeight);
+  }
 
-function loop() {
-  draw();
-  requestAnimFrame(loop);
-}
+  window.onresize = onResize;
+  
+  window.ontouchmove = onMove;
+  window.onmousemove = onMove;
+
+  canvas.ontouchstart = onDown;
+  canvas.onmousedown = onDown;
+  window.ontouchend = onUp;
+  window.onmouseup = onUp;
+};
 
 function init() {
-  canvas = document.getElementById("canvas");
-  ctx = canvas.getContext("2d");
+  var canvas = document.getElementById("mainCanvas");
+  var offScreenCanvas = document.getElementById('offScreenCanvas');
+  var ctx = canvas.getContext("2d");
+  var ctx_off = offScreenCanvas.getContext("2d");
+  var startX = 0;
+  var startY = 0;
 
-  canvas.addEventListener(
-    "contextmenu",
-    function (e) {
-      //Don't show context menu by pressing right mouse button
-      if (e.button == 2) {
-        //!!!needs to fix number, that varies by browser!!!
-        e.preventDefault();
-        return false;
-      }
-    },
-    false
-  );
-
-  window.addEventListener("pointermove", onMouseMove, false);
-
-  canvas.addEventListener("pointerdown", onMouseDown, false);
-  window.addEventListener("pointerup", onMouseUp, false);
-
-  canvas.addEventListener("pointerover", onMouseOver, false);
-  canvas.addEventListener("pointerout", onMouseOut, false);
-
-  loop();
-
-  document.onselectstart = function () {
-    if (mouse.isMouseDragged) {
-      // do not select text outside if animation in canvas is active
-      return false;
-    }
-  };
-}
-
-function draw() {
   canvas.width = window.innerWidth * 0.75 - 10;
   canvas.height = window.innerHeight * 0.95 - 10;
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
 
-  //   Ugh......
-  //    var fractalArea = getComputedStyle(document.getElementById("fractal_area"));
-  //    canvas.width = Math.floor(fractalArea.offsetWidth.slice(0, -2)) - 20;
-  //    canvas.height = Math.floor(fractalArea.offsetHeight.slice(0, -2)) - 20;
+  var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
+  rectangle_off.render(ctx_off);
+  
+  var rectangle = new Rectangle(50, 50, 100, 100);
+  rectangle.render(ctx);
 
-  // ctx.clearRect(0,0,canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  var circle = new Arc(200, 140, 50);
+  circle.render(ctx);
+  
+  var canvasIsDragging = false;
 
-  //   ctx.fillStyle = "rgba(0,255,255,0.8)";
-  //   ctx.fillRect(mouse.xOut - 20, mouse.yOut - 20, 40, 40);
-  //   ctx.fillStyle = "rgb(0,0,0)";
-  //   ctx.fillRect(mouse.xOut - 2, mouse.yOut - 2, 4, 4);
+  var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  //   ctx.fillStyle = "rgba(255,255,0,0.8)";
-  //   ctx.fillRect(mouse.xOver - 20, mouse.yOver - 20, 40, 40);
-  //   ctx.fillStyle = "rgb(0,0,0)";
-  //   ctx.fillRect(mouse.xOver - 2, mouse.yOver - 2, 4, 4);
+    switch (evtType) {
+      case "down":
+        startX = x;
+        startY = y;
+        [rectangle, circle].some(function (shape) {
+          shape.isDragging = shape.isHit(x, y);
+          return shape.isDragging;
+        });
+        canvasIsDragging = true;
+        break;
 
-  ctx.fillStyle = "rgb(255,0,0)";
-  ctx.fillRect(mouse.xDown - 15, mouse.yDown - 15, 30, 30);
-  ctx.fillStyle = "rgb(0,0,0)";
-  ctx.fillRect(mouse.xDown - 2, mouse.yDown - 2, 4, 4);
+      case "up":
+        rectangle.isDragging = false;
+        circle.isDragging = false;
+        canvasIsDragging = false;
+        break;
 
-  ctx.fillStyle = "rgba(0,0,255,0.8)";
-  ctx.fillRect(mouse.xUp - 15, mouse.yUp - 15, 30, 30);
-  ctx.fillStyle = "rgb(0,0,0)";
-  ctx.fillRect(mouse.xUp - 2, mouse.yUp - 2, 4, 4);
+      case "move":
+        var dx = x - startX;
+        var dy = y - startY;
+        startX = x;
+        startY = y;
 
-  /// actual cursor
-  // ctx.fillStyle = "rgb(100,100,255)";
-  // ctx.strokeStyle = "rgb(0,0,100)";
-  // circle(ctx, mouse.x, mouse.y, 10);
-  // ctx.stroke();
+        if (rectangle.isDragging) {
+          rectangle.x += dx;
+          rectangle.y += dy;
+        }
+        else if (circle.isDragging) {
+          circle.x += dx;
+          circle.y += dy;
+        }
+        else if (canvasIsDragging) {
+          rectangle.x += dx;
+          rectangle.y += dy;
+          circle.x += dx;
+          circle.y += dy;
+        }
+        break;
 
-  // ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-  // ctx.lineWidth = 1;
-
-  if (mouse.isMouseDragged) {
-    ctx.save();
-    ctx.strokeStyle = "rgba(100,100,100,0.07)";
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.lineWidth = 15;
-    ctx.lineCap = "round";
-
-    var edgeIntersect = mouseDraggedOut(
-      canvas,
-      ctx,
-      mouse.xDown,
-      mouse.yDown,
-      mouse.x,
-      mouse.y,
-      "rgba(0, 0, 255, 1)",
-      2
-    );
-    if (edgeIntersect.x === undefined || edgeIntersect.y === undefined) {
-      edgeIntersect.x = mouse.x;
-      edgeIntersect.y = mouse.y;
+      case "resize":
+        canvas.width = window.innerWidth * 0.75 - 10;
+        canvas.height = window.innerHeight * 0.95 - 10;
+        offScreenCanvas.width = canvas.width;
+        offScreenCanvas.height = canvas.height;
+        rectangle_off.render(ctx_off);
+        break;
     }
-    line(ctx, mouse.xDown, mouse.yDown, edgeIntersect.x, edgeIntersect.y);
-    ctx.strokeStyle = "rgba(0,0,0,0.07)";
-    circle(ctx, mouse.xDown, mouse.yDown, 20);
-    circle(ctx, edgeIntersect.x, edgeIntersect.y, 20);
-    ctx.lineWidth = 1;
-    ctx.stroke();
 
-    ctx.restore();
-  } else {
-    ctx.save();
-    ctx.strokeStyle = "rgba(0,0,0,1)";
-    ctx.lineWidth = 1;
-    line(ctx, mouse.xDown, mouse.yDown, mouse.xUp, mouse.yUp);
-    ctx.restore();
-  }
+    ctx.drawImage(offScreenCanvas, 0, 0);
+    circle.render(ctx);
+    rectangle.render(ctx);
+  });
 }
 
 init();
