@@ -115,6 +115,22 @@ var MouseTouchTracker = function (window, canvas, callback) {
   window.onmouseup = onUp;
 };
 
+
+// Compatibility animation loop
+window.requestAnimFrame = (function (callback) {
+  return (
+    window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function (callback) {
+      window.setTimeout(callback, 0);
+    }
+  );
+})();
+
+
 function init() {
   var canvas = document.getElementById("mainCanvas");
   var offScreenCanvas = document.getElementById('offScreenCanvas');
@@ -139,9 +155,14 @@ function init() {
   
   var canvasIsDragging = false;
 
+  function draw(ctx, offScreenCanvas, circle, rectangle) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(offScreenCanvas, 0, 0);
+    circle.render(ctx);
+    rectangle.render(ctx);
+  }
+  
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     switch (evtType) {
       case "down":
         startX = x;
@@ -189,10 +210,7 @@ function init() {
         rectangle_off.render(ctx_off);
         break;
     }
-
-    ctx.drawImage(offScreenCanvas, 0, 0);
-    circle.render(ctx);
-    rectangle.render(ctx);
+    draw(ctx, offScreenCanvas, circle, rectangle);
   });
 }
 
