@@ -72,7 +72,13 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
     <div class="header">Line Fractal Generator</div>
     <div class="content">
       <div class="left">
-        <input id="Depth" , type="number" step="1" />
+        <label for="Depth">Depth:</label>
+        <br />
+        <input id="Depth" , type="number" step="1", min="1", max="100" />
+        <br />
+        <label for="RefreshRate">Refresh Rate:</label>
+        <br />
+        <input id="RefreshRate" , type="number" step="1", value="42", min="1", max="50000" />
         <br />
         <input id="Draw" type="button" value="Draw" onclick="drawFractal();" />
         <br />

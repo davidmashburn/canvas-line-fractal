@@ -1,9 +1,9 @@
-var Rectangle = function (x, y, width, height, color="#2793ef") {
+var Rectangle = function (x, y, width, height, color = "#2793ef") {
   this.x = x;
   this.y = y;
   this.width = width;
   this.height = height;
-  this.color=color;
+  this.color = color;
   this.isDragging = false;
 
   this.render = function (ctx) {
@@ -35,12 +35,12 @@ var Rectangle = function (x, y, width, height, color="#2793ef") {
   };
 };
 
-var Arc = function (x, y, radius, radians = Math.PI * 2, color="#2793ef") {
+var Arc = function (x, y, radius, radians = Math.PI * 2, color = "#2793ef") {
   this.x = x;
   this.y = y;
   this.radius = radius;
   this.radians = radians;
-  this.color=color;
+  this.color = color;
   this.isDragging = false;
 
   this.render = function (ctx) {
@@ -65,6 +65,8 @@ var Arc = function (x, y, radius, radians = Math.PI * 2, color="#2793ef") {
 };
 
 var MouseTouchTracker = function (window, canvas, callback) {
+  var canvasIsDragging = false;
+
   function processEvent(evt) {
     var rect = canvas.getBoundingClientRect();
     var offsetTop = rect.top;
@@ -84,20 +86,26 @@ var MouseTouchTracker = function (window, canvas, callback) {
   }
 
   function onDown(evt) {
+    canvasIsDragging = true;
     evt.preventDefault();
     var coords = processEvent(evt);
     callback("down", coords.x, coords.y);
   }
 
   function onUp(evt) {
-    evt.preventDefault();
-    callback("up");
+    if (canvasIsDragging) {
+      evt.preventDefault();
+      callback("up");
+      canvasIsDragging = false;
+    }
   }
 
   function onMove(evt) {
-    evt.preventDefault();
-    var coords = processEvent(evt);
-    callback("move", coords.x, coords.y);
+    if (canvasIsDragging) {
+      evt.preventDefault();
+      var coords = processEvent(evt);
+      callback("move", coords.x, coords.y);
+    }
   }
 
   function onResize(evt) {
@@ -105,16 +113,16 @@ var MouseTouchTracker = function (window, canvas, callback) {
   }
 
   window.onresize = onResize;
-  
+
   window.ontouchmove = onMove;
   window.onmousemove = onMove;
 
   canvas.ontouchstart = onDown;
   canvas.onmousedown = onDown;
+
   window.ontouchend = onUp;
   window.onmouseup = onUp;
 };
-
 
 // Compatibility animation loop
 window.requestAnimFrame = (function (callback) {
@@ -130,38 +138,41 @@ window.requestAnimFrame = (function (callback) {
   );
 })();
 
+function raw_draw(ctx, offScreenCanvas, circle, rectangle) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.drawImage(offScreenCanvas, 0, 0);
+  circle.render(ctx);
+  rectangle.render(ctx);
+}
+
+var isDrawingLoop = false;
 
 function init() {
   var canvas = document.getElementById("mainCanvas");
-  var offScreenCanvas = document.getElementById('offScreenCanvas');
+  var offScreenCanvas = document.getElementById("offScreenCanvas");
   var ctx = canvas.getContext("2d");
   var ctx_off = offScreenCanvas.getContext("2d");
   var startX = 0;
   var startY = 0;
+  var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
+  var rectangle = new Rectangle(50, 50, 100, 100);
+  var circle = new Arc(200, 140, 50);
+  var canvasIsPanning = false;
+
+  document.getElementById("Draw").onclick = () => {
+    if (!isDrawingLoop) {
+      isDrawingLoop = true;
+      loop();
+    } else {
+      isDrawingLoop = false;
+    }
+  }
 
   canvas.width = window.innerWidth * 0.75 - 10;
   canvas.height = window.innerHeight * 0.95 - 10;
   offScreenCanvas.width = canvas.width;
   offScreenCanvas.height = canvas.height;
 
-  var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
-  rectangle_off.render(ctx_off);
-  
-  var rectangle = new Rectangle(50, 50, 100, 100);
-  rectangle.render(ctx);
-
-  var circle = new Arc(200, 140, 50);
-  circle.render(ctx);
-  
-  var canvasIsDragging = false;
-
-  function draw(ctx, offScreenCanvas, circle, rectangle) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(offScreenCanvas, 0, 0);
-    circle.render(ctx);
-    rectangle.render(ctx);
-  }
-  
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
     switch (evtType) {
       case "down":
@@ -171,13 +182,13 @@ function init() {
           shape.isDragging = shape.isHit(x, y);
           return shape.isDragging;
         });
-        canvasIsDragging = true;
+        canvasIsPanning = true;
         break;
 
       case "up":
         rectangle.isDragging = false;
         circle.isDragging = false;
-        canvasIsDragging = false;
+        canvasIsPanning = false;
         break;
 
       case "move":
@@ -189,12 +200,10 @@ function init() {
         if (rectangle.isDragging) {
           rectangle.x += dx;
           rectangle.y += dy;
-        }
-        else if (circle.isDragging) {
+        } else if (circle.isDragging) {
           circle.x += dx;
           circle.y += dy;
-        }
-        else if (canvasIsDragging) {
+        } else if (canvasIsPanning) {
           rectangle.x += dx;
           rectangle.y += dy;
           circle.x += dx;
@@ -210,8 +219,55 @@ function init() {
         rectangle_off.render(ctx_off);
         break;
     }
-    draw(ctx, offScreenCanvas, circle, rectangle);
+
+    raw_draw(ctx, offScreenCanvas, circle, rectangle);
   });
+
+  var count = 0;
+  var r;
+  function draw() {
+    let colors = ["red", "orange", "yellow", "green", "cyan", "blue", "violet"];
+    rectangle_off.color = colors[count % colors.length];
+    //r = (bottom, top) => bottom + Math.floor(Math.random() * (top - bottom));
+    // rectangle_off.color = (
+    //   `hsla(${r(0, 360)}, ${r(50, 100)}%, ${r(20, 50)}%, 1)`
+    // );
+    rectangle_off.x = 150 + (count % 400);
+    rectangle_off.y = 150 + ((count / 400) % 400);
+    rectangle_off.render(ctx_off);
+
+    //count = (count + 1) % colors.length;
+    count++;
+    raw_draw(ctx, offScreenCanvas, circle, rectangle);
+  }
+
+  draw();
+
+  return draw;
 }
 
-init();
+var draw = init();
+
+var MAX_REFRESH = 10000;
+
+function loop() {
+  let refreshRate = document.getElementById("RefreshRate").value;
+  if (!refreshRate) {
+    refreshRate = 1;
+  } else if (MAX_REFRESH < refreshRate) {
+    refreshRate = MAX_REFRESH;
+  } else if (refreshRate < 1) {
+    refreshRate = 1;
+  }
+  document.getElementById("RefreshRate").value = Math.floor(refreshRate);
+  for (let i = 0; i < refreshRate; i++) {
+    if (!isDrawingLoop) {
+      break;
+    }
+    draw();
+  }
+  if (isDrawingLoop) {
+    requestAnimFrame(loop);
+  }
+  
+}
