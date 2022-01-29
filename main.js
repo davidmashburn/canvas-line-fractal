@@ -35,12 +35,20 @@ var Rectangle = function (x, y, width, height, color = "#2793ef") {
   };
 };
 
-var Arc = function (x, y, radius, radians = Math.PI * 2, color = "#2793ef") {
+var Arc = function (
+  x,
+  y,
+  radius,
+  radians = Math.PI * 2,
+  color = "#2793ef",
+  strokeColor = undefined
+) {
   this.x = x;
   this.y = y;
   this.radius = radius;
   this.radians = radians;
   this.color = color;
+  this.strokeColor = strokeColor;
   this.isDragging = false;
 
   this.render = function (ctx) {
@@ -50,6 +58,44 @@ var Arc = function (x, y, radius, radians = Math.PI * 2, color = "#2793ef") {
     ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
     ctx.fillStyle = this.color;
     ctx.fill();
+    if (this.strokeColor) {
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    var dx = this.x - x;
+    var dy = this.y - y;
+    if (dx * dx + dy * dy < this.radius * this.radius) {
+      return true;
+    }
+    return false;
+  };
+};
+
+var Point = function (x, y, color = "red") {
+  this.x = x;
+  this.y = y;
+  this.radius = 4;
+  this.radians = Math.PI * 2;
+  this.color = color;
+  this.strokeColor = "black";
+  this.isDragging = false;
+
+  this.render = function (ctx) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    if (this.strokeColor) {
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
 
     ctx.restore();
   };
@@ -138,11 +184,12 @@ window.requestAnimFrame = (function (callback) {
   );
 })();
 
-function raw_draw(ctx, offScreenCanvas, circle, rectangle) {
+function raw_draw(ctx, offScreenCanvas, shapes) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(offScreenCanvas, 0, 0);
-  circle.render(ctx);
-  rectangle.render(ctx);
+  for (const shape of shapes) {
+    shape.render(ctx);
+  }
 }
 
 var isDrawingLoop = false;
@@ -157,7 +204,12 @@ function init() {
   var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
   var rectangle = new Rectangle(50, 50, 100, 100);
   var circle = new Arc(200, 140, 50);
+  var points = [
+    new Arc(30, 30, 10, Math.PI * 2, "red", "black"),
+    new Point(20, 20),
+  ];
   var canvasIsPanning = false;
+  var shapes = [rectangle, circle].concat(points);
 
   document.getElementById("Draw").onclick = () => {
     if (!isDrawingLoop) {
@@ -166,7 +218,7 @@ function init() {
     } else {
       isDrawingLoop = false;
     }
-  }
+  };
 
   canvas.width = window.innerWidth * 0.75 - 10;
   canvas.height = window.innerHeight * 0.95 - 10;
@@ -174,20 +226,26 @@ function init() {
   offScreenCanvas.height = canvas.height;
 
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
+    let shape;
     switch (evtType) {
       case "down":
         startX = x;
         startY = y;
-        [rectangle, circle].some(function (shape) {
-          shape.isDragging = shape.isHit(x, y);
-          return shape.isDragging;
-        });
         canvasIsPanning = true;
+
+        for (shape of shapes.slice().reverse()) {
+          shape.isDragging = shape.isHit(x, y);
+          if (shape.isDragging) {
+            canvasIsPanning = false;
+            break;
+          }
+        }
         break;
 
       case "up":
-        rectangle.isDragging = false;
-        circle.isDragging = false;
+        for (shape of shapes) {
+          shape.isDragging = false;
+        }
         canvasIsPanning = false;
         break;
 
@@ -197,17 +255,18 @@ function init() {
         startX = x;
         startY = y;
 
-        if (rectangle.isDragging) {
-          rectangle.x += dx;
-          rectangle.y += dy;
-        } else if (circle.isDragging) {
-          circle.x += dx;
-          circle.y += dy;
-        } else if (canvasIsPanning) {
-          rectangle.x += dx;
-          rectangle.y += dy;
-          circle.x += dx;
-          circle.y += dy;
+        for (shape of shapes) {
+          if (shape.isDragging) {
+            shape.x += dx;
+            shape.y += dy;
+          }
+        }
+
+        if (canvasIsPanning) {
+          for (shape of shapes) {
+            shape.x += dx;
+            shape.y += dy;
+          }
         }
         break;
 
@@ -220,7 +279,7 @@ function init() {
         break;
     }
 
-    raw_draw(ctx, offScreenCanvas, circle, rectangle);
+    raw_draw(ctx, offScreenCanvas, shapes);
   });
 
   var count = 0;
@@ -238,7 +297,7 @@ function init() {
 
     //count = (count + 1) % colors.length;
     count++;
-    raw_draw(ctx, offScreenCanvas, circle, rectangle);
+    raw_draw(ctx, offScreenCanvas, shapes);
   }
 
   draw();
@@ -269,5 +328,4 @@ function loop() {
   if (isDrawingLoop) {
     requestAnimFrame(loop);
   }
-  
 }
