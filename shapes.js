@@ -211,9 +211,9 @@ var ArrowLine = function (start, end, mirrored = false) {
   };
 };
 
-function generatePointsAndArrowLinesFromGenerator(generator) {
-  let points = generator.points.map((point) => new Point(point[0], -point[1]));
-  let lines = generator.lines.map(
+function generatePointsAndArrowLinesFromGeneratorData(generatorData) {
+  let points = generatorData.points.map((point) => new Point(point[0], -point[1]));
+  let lines = generatorData.lines.map(
     (line) => new ArrowLine(points[line[0]], points[line[1]], line[2])
   );
   return [points, lines];
