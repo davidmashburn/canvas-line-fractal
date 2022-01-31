@@ -2,13 +2,12 @@ const LINE_WIDTH = 3;
 const POINT_RADIUS = LINE_WIDTH * 5;
 const ARROW_LENGTH = POINT_RADIUS * 6;
 
-
 function roundPoint(point) {
   return { x: Math.round(point.x), y: Math.round(point.y) };
 }
 
 function sqrtSumSqr(x, y) {
-  return Math.sqrt((x * x) + (y * y));
+  return Math.sqrt(x * x + y * y);
 }
 
 function pointDist(start, end) {

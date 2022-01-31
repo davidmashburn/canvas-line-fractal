@@ -125,7 +125,7 @@ var Point = function (x, y, color = "red") {
   };
 };
 
-var ArrowLine = function(start, end, mirrored = false) {
+var ArrowLine = function (start, end, mirrored = false) {
   this.start = start;
   this.end = end;
   this.mirrored = mirrored;
@@ -136,6 +136,7 @@ var ArrowLine = function(start, end, mirrored = false) {
   this.isSelected = false;
   this.color = "black";
   this.selectedColor = "blue";
+  this.isTriangleDragging = false;
 
   this.render = function (ctx) {
     ctx.save();
@@ -144,19 +145,16 @@ var ArrowLine = function(start, end, mirrored = false) {
     this.lineAreaPath = new Path2D();
 
     let lineLength = pointDist(this.start, this.end);
-    console.log(end.x - start.x, end.y - start.y);
-    console.log(lineLength);
     if (this.arrowEnabled) {
       //check the line to see if it's long enough to have an arrow
       //exit the function early if it's too short
-      console.log(ARROW_LENGTH, lineLength, lineLength - 1 - 2 * POINT_RADIUS)
       if (ARROW_LENGTH <= lineLength - 1 - 2 * POINT_RADIUS) {
         //if line is long enough to fit the arrow
 
         //set up arrow on the unit line
         let xTip = (lineLength - POINT_RADIUS) / lineLength;
         let xBack = (lineLength - POINT_RADIUS - ARROW_LENGTH) / lineLength;
-        let yExtend = ((self.mirrored ? 1 : -1) * ARROW_LENGTH) / lineLength;
+        let yExtend = ((this.mirrored ? 1 : -1) * ARROW_LENGTH) / lineLength;
 
         let trianglePoints = [
           { x: xTip, y: 0 },
@@ -168,7 +166,6 @@ var ArrowLine = function(start, end, mirrored = false) {
         addPolygonToPath(this.trianglePath, trianglePoints);
         this.trianglePath.fillStyle = this.color;
         ctx.fill(this.trianglePath);
-        console.log("draw triangle")
       }
     }
     //update the lineAreaPath used in isLineHit
@@ -196,17 +193,23 @@ var ArrowLine = function(start, end, mirrored = false) {
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
     ctx.stroke();
-    console.log("draw line")
 
     ctx.restore();
   };
-  this.isArrowHit = function (x, y) {
-    return ctx.isPointInPath(this.trianglePath, x, y);
+  this.isTriangleHit = function (ctx, point) {
+    return ctx.isPointInPath(this.trianglePath, point.x, point.y);
   };
-  this.isLineHit = function (x, y) {
-    return ctx.isPointInPath(this.lineAreaPath, x, y);
+  this.isLineHit = function (ctx, point) {
+    return ctx.isPointInPath(this.lineAreaPath, point.x, point.y);
   };
-}
+  this.getPointQuadrant = function (point) {
+    let transformedPoint = transformPointReverse(point, this);
+    return {
+      x: transformedPoint.x >= 0.5 ? 1 : -1,
+      y: transformedPoint.y >= 0 ? 1 : -1,
+    };
+  };
+};
 
 // CONTINUE PORT HERE
 // MORE ARROWLINE:
