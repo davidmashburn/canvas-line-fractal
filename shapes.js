@@ -1,21 +1,135 @@
 import {
   POINT_RADIUS,
   ARROW_LENGTH,
+  roundPoint,
   pointDist,
   transformPoint,
   transformLine,
   transformPointReverse,
   transformLineReverse,
+  addPolygonToPath,
 } from "./helpers.js";
 
-function arrowLine(start, end, mirrored = false) {
+var Rectangle = function (x, y, width, height, color = "#2793ef") {
+  this.x = x;
+  this.y = y;
+  this.width = width;
+  this.height = height;
+  this.color = color;
+  this.isDragging = false;
+
+  this.render = function (ctx) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(
+      this.x - this.width * 0.5,
+      this.y - this.height * 0.5,
+      this.width,
+      this.height
+    );
+    ctx.fillStyle = this.color;
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    if (
+      x > this.x - this.width * 0.5 &&
+      y > this.y - this.height * 0.5 &&
+      x < this.x + this.width - this.width * 0.5 &&
+      y < this.y + this.height - this.height * 0.5
+    ) {
+      return true;
+    }
+    return false;
+  };
+};
+
+var Arc = function (
+  x,
+  y,
+  radius,
+  radians = Math.PI * 2,
+  color = "#2793ef",
+  strokeColor = undefined
+) {
+  this.x = x;
+  this.y = y;
+  this.radius = radius;
+  this.radians = radians;
+  this.color = color;
+  this.strokeColor = strokeColor;
+  this.isDragging = false;
+
+  this.render = function (ctx) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    if (this.strokeColor) {
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    var dx = this.x - x;
+    var dy = this.y - y;
+    if (dx * dx + dy * dy < this.radius * this.radius) {
+      return true;
+    }
+    return false;
+  };
+};
+
+var Point = function (x, y, color = "red") {
+  this.x = x;
+  this.y = y;
+  this.radius = 4;
+  this.radians = Math.PI * 2;
+  this.color = color;
+  this.strokeColor = "black";
+  this.isDragging = false;
+
+  this.render = function (ctx) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    if (this.strokeColor) {
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
+  this.isHit = function (x, y) {
+    var dx = this.x - x;
+    var dy = this.y - y;
+    if (dx * dx + dy * dy < this.radius * this.radius) {
+      return true;
+    }
+    return false;
+  };
+};
+
+var ArrowLine = function(start, end, mirrored = false) {
   this.start = start;
   this.end = end;
   this.mirrored = mirrored;
 
   this.trianglePath = undefined;
   this.lineAreaPath = undefined;
-  this.arrowEnabled = false;
+  this.arrowEnabled = true;
   this.isSelected = false;
   this.color = "black";
   this.selectedColor = "blue";
@@ -27,62 +141,58 @@ function arrowLine(start, end, mirrored = false) {
     this.lineAreaPath = new Path2D();
 
     let lineLength = pointDist(this.start, this.end);
-    if (arrowEnabled) {
+    console.log(end.x - start.x, end.y - start.y);
+    console.log(lineLength);
+    if (this.arrowEnabled) {
       //check the line to see if it's long enough to have an arrow
       //exit the function early if it's too short
+      console.log(ARROW_LENGTH, lineLength, lineLength - 1 - 2 * POINT_RADIUS)
       if (ARROW_LENGTH <= lineLength - 1 - 2 * POINT_RADIUS) {
         //if line is long enough to fit the arrow
 
         //set up arrow on the unit line
-        let xTip = (lineLength - POINT_DNM_RADIUS) / lineLength;
-        let xBack = (lineLength - POINT_DNM_RADIUS - ARROW_LENGTH) / lineLength;
-        let yExtend = ((self.mirrored ? -1 : 1) * ARROW_LENGTH) / lineLength;
+        let xTip = (lineLength - POINT_RADIUS) / lineLength;
+        let xBack = (lineLength - POINT_RADIUS - ARROW_LENGTH) / lineLength;
+        let yExtend = ((self.mirrored ? 1 : -1) * ARROW_LENGTH) / lineLength;
 
-        let triangle = [
+        let trianglePoints = [
           { x: xTip, y: 0 },
           { x: xBack, y: 0 },
           { x: xBack, y: yExtend },
-        ].map((point) => round(transformPoint(point, this)));
+        ].map((point) => roundPoint(transformPoint(point, this)));
 
         //update trianglePath and draw triangle
-        this.trianglePath.moveTo(triangle[0]);
-        this.trianglePath.lineTo(triangle[1]);
-        this.trianglePath.lineTo(triangle[2]);
-        this.trianglePath.closePath();
-
+        addPolygonToPath(this.trianglePath, trianglePoints);
         this.trianglePath.fillStyle = this.color;
         ctx.fill(this.trianglePath);
+        console.log("draw triangle")
       }
     }
     //update the lineAreaPath used in isLineHit
     if (start.x != end.x || start.y != end.y) {
       let radius = POINT_RADIUS / lineLength;
-      let lineArea = [
+      let lineAreaPoints = [
         { x: 0, y: radius },
         { x: 0, y: -radius },
         { x: 1, y: -radius },
         { x: 1, y: radius },
-      ].map((point) => round(transformPoint(point, this)));
+      ].map((point) => roundPoint(transformPoint(point, this)));
 
-      this.lineAreaPath.moveTo(triangle[0]);
-      this.lineAreaPath.lineTo(triangle[1]);
-      this.lineAreaPath.lineTo(triangle[2]);
-      this.lineAreaPath.lineTo(triangle[3]);
-      this.lineAreaPath.closePath();
+      addPolygonToPath(this.lineAreaPath, lineAreaPoints);
 
       if (this.isSelected) {
         this.lineAreaPath.fillStyle = this.selectedColor;
-        ctx.stroke(this.lineAreaPath);
+        ctx.fill(this.lineAreaPath);
       }
     }
 
     //draw line
     ctx.beginPath();
     ctx.strokeStyle = this.color;
-    ctx.moveTo(round(transformPoint(start, this)));
-    ctx.lineTo(round(transformPoint(end, this)));
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
     ctx.stroke();
-    ctx.closePath();
+    console.log("draw line")
 
     ctx.restore();
   };
@@ -119,7 +229,7 @@ function arrowLine(start, end, mirrored = false) {
 
 //         #begin checking
 //         if lengthLine > ARROW_LENGTH  and  arrowEnabled == true :
-//             tipX = int(int(lengthLine) - POINT_DNM_RADIUS - 1)
+//             tipX = int(int(lengthLine) - POINT_RADIUS - 1)
 //             backX = int(tipX - ARROW_LENGTH)
 
 //             if mirrored==false:
@@ -133,7 +243,7 @@ function arrowLine(start, end, mirrored = false) {
 
 //         if lengthLine > 0:
 //             if whereRotated[0] <= lengthLine and whereRotated[0] >= 0 and
-//                whereRotated[1] <= POINT_DNM_RADIUS  and whereRotated[1] >= -POINT_DNM_RADIUS:
+//                whereRotated[1] <= POINT_RADIUS  and whereRotated[1] >= -POINT_RADIUS:
 //                 return 2 #line hit
 
 //         return 0 #continue checking
@@ -160,7 +270,7 @@ function arrowLine(start, end, mirrored = false) {
 
 //         #begin checking
 //         if lengthLine > ARROW_LENGTH  and  arrowEnabled == true :
-//             tipX = int(int(lengthLine) - POINT_DNM_RADIUS - 1)
+//             tipX = int(int(lengthLine) - POINT_RADIUS - 1)
 //             backX = int(tipX - ARROW_LENGTH)
 
 //             if mirrored==false:
@@ -176,7 +286,7 @@ function arrowLine(start, end, mirrored = false) {
 
 //         if lengthLine > 0:
 //             if whereRotated[0] <= lengthLine and whereRotated[0] >= 0 and
-//                whereRotated[1] <= POINT_DNM_RADIUS  and whereRotated[1] >= -POINT_DNM_RADIUS:
+//                whereRotated[1] <= POINT_RADIUS  and whereRotated[1] >= -POINT_RADIUS:
 //                 TrackMotion(where)
 //                 return 2 #Tell FractalObject to execute tracking function.  Don't check any other ArrowLineDNM's
 
@@ -280,3 +390,5 @@ function arrowLine(start, end, mirrored = false) {
 //         return point1+point2 # wow, it really might be that easy!
 //     def GetFloatLineLength(self):
 //         return length_line([point1[0], point1[1], point2[0], point2[1]])
+
+export { Point, Rectangle, Arc, ArrowLine };

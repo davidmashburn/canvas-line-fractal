@@ -6,7 +6,7 @@ function roundPoint(point) {
 }
 
 function sqrtSumSqr(x, y) {
-  return Math.sqrt(x ^ (2 + y) ^ 2);
+  return Math.sqrt((x * x) + (y * y));
 }
 
 function pointDist(start, end) {
@@ -77,7 +77,7 @@ function transformPointReverse(pointDes, lineRef) {
   const end = lineRef.end;
   const dx = end.x - start.x;
   const dy = end.y - start.y;
-  const refLengthSq = dx ^ (2 + dy) ^ 2;
+  const refLengthSq = dx * dx + dy * dy;
   let pointSrc = {
     x:
       ((pointDes.x - start.x) * dx + (pointDes.y - start.y) * dy) / refLengthSq,
@@ -95,6 +95,16 @@ function transformLineReverse(lineDes, lineRef) {
   return lineSrc;
 }
 
+function addPolygonToPath(path, points) {
+  let point = points[0];
+  path.moveTo(point.x, point.y);
+  for (let i = 1; i < points.length; i++) {
+    point = points[i];
+    path.lineTo(point.x, point.y);
+  }
+  path.closePath();
+}
+
 export {
   POINT_RADIUS,
   ARROW_LENGTH,
@@ -109,4 +119,5 @@ export {
   transformLine,
   transformPointReverse,
   transformLineReverse,
+  addPolygonToPath,
 };

@@ -1,114 +1,4 @@
-var Rectangle = function (x, y, width, height, color = "#2793ef") {
-  this.x = x;
-  this.y = y;
-  this.width = width;
-  this.height = height;
-  this.color = color;
-  this.isDragging = false;
-
-  this.render = function (ctx) {
-    ctx.save();
-
-    ctx.beginPath();
-    ctx.rect(
-      this.x - this.width * 0.5,
-      this.y - this.height * 0.5,
-      this.width,
-      this.height
-    );
-    ctx.fillStyle = this.color;
-    ctx.fill();
-
-    ctx.restore();
-  };
-
-  this.isHit = function (x, y) {
-    if (
-      x > this.x - this.width * 0.5 &&
-      y > this.y - this.height * 0.5 &&
-      x < this.x + this.width - this.width * 0.5 &&
-      y < this.y + this.height - this.height * 0.5
-    ) {
-      return true;
-    }
-    return false;
-  };
-};
-
-var Arc = function (
-  x,
-  y,
-  radius,
-  radians = Math.PI * 2,
-  color = "#2793ef",
-  strokeColor = undefined
-) {
-  this.x = x;
-  this.y = y;
-  this.radius = radius;
-  this.radians = radians;
-  this.color = color;
-  this.strokeColor = strokeColor;
-  this.isDragging = false;
-
-  this.render = function (ctx) {
-    ctx.save();
-
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-    if (this.strokeColor) {
-      ctx.strokeStyle = this.strokeColor;
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  };
-
-  this.isHit = function (x, y) {
-    var dx = this.x - x;
-    var dy = this.y - y;
-    if (dx * dx + dy * dy < this.radius * this.radius) {
-      return true;
-    }
-    return false;
-  };
-};
-
-var Point = function (x, y, color = "red") {
-  this.x = x;
-  this.y = y;
-  this.radius = 4;
-  this.radians = Math.PI * 2;
-  this.color = color;
-  this.strokeColor = "black";
-  this.isDragging = false;
-
-  this.render = function (ctx) {
-    ctx.save();
-
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, this.radians, false);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-    if (this.strokeColor) {
-      ctx.strokeStyle = this.strokeColor;
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  };
-
-  this.isHit = function (x, y) {
-    var dx = this.x - x;
-    var dy = this.y - y;
-    if (dx * dx + dy * dy < this.radius * this.radius) {
-      return true;
-    }
-    return false;
-  };
-};
+import {Point, Rectangle, Arc, ArrowLine} from "./shapes.js"
 
 var MouseTouchTracker = function (window, canvas, callback) {
   var canvasIsDragging = false;
@@ -205,11 +95,16 @@ function init() {
   var rectangle = new Rectangle(50, 50, 100, 100);
   var circle = new Arc(200, 140, 50);
   var points = [
-    new Arc(30, 30, 10, Math.PI * 2, "red", "black"),
+    new Point(40, 220),
+    new Point(240, 220),
     new Point(20, 20),
+    new Point(30, 30),
+  ];
+  var lines = [
+    new ArrowLine(points[0], points[1], false),
   ];
   var canvasIsPanning = false;
-  var shapes = [rectangle, circle].concat(points);
+  var shapes = [rectangle, circle].concat(lines).concat(points);
 
   document.getElementById("Draw").onclick = () => {
     if (!isDrawingLoop) {
