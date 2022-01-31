@@ -1,4 +1,5 @@
 import {
+  LINE_WIDTH,
   POINT_RADIUS,
   ARROW_LENGTH,
   roundPoint,
@@ -72,6 +73,7 @@ var Arc = function (
     ctx.fill();
     if (this.strokeColor) {
       ctx.strokeStyle = this.strokeColor;
+      ctx.lineWidth = LINE_WIDTH;
       ctx.stroke();
     }
 
@@ -91,7 +93,7 @@ var Arc = function (
 var Point = function (x, y, color = "red") {
   this.x = x;
   this.y = y;
-  this.radius = 4;
+  this.radius = POINT_RADIUS;
   this.radians = Math.PI * 2;
   this.color = color;
   this.strokeColor = "black";
@@ -106,6 +108,7 @@ var Point = function (x, y, color = "red") {
     ctx.fill();
     if (this.strokeColor) {
       ctx.strokeStyle = this.strokeColor;
+      ctx.lineWidth = LINE_WIDTH;
       ctx.stroke();
     }
 
@@ -189,6 +192,7 @@ var ArrowLine = function(start, end, mirrored = false) {
     //draw line
     ctx.beginPath();
     ctx.strokeStyle = this.color;
+    ctx.lineWidth = LINE_WIDTH;
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
     ctx.stroke();

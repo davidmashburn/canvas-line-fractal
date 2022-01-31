@@ -1,5 +1,7 @@
-const POINT_RADIUS = 5;
-const ARROW_LENGTH = 30;
+const LINE_WIDTH = 3;
+const POINT_RADIUS = LINE_WIDTH * 5;
+const ARROW_LENGTH = POINT_RADIUS * 6;
+
 
 function roundPoint(point) {
   return { x: Math.round(point.x), y: Math.round(point.y) };
@@ -106,6 +108,7 @@ function addPolygonToPath(path, points) {
 }
 
 export {
+  LINE_WIDTH,
   POINT_RADIUS,
   ARROW_LENGTH,
   roundPoint,
