@@ -20,26 +20,25 @@ function assert(isTrue) {
 
 it("should have the lines", () => {
   let g = generatorFromData(SampleFractal);
-  console.log(g.lines[0].start)
-  assert(g.lines[0].start.x == 0)
-  assert(g.lines[0].start.y == 0)
-  assert(g.lines[0].end.x == 0.5)
+  console.log(g.lines[0].start);
+  assert(g.lines[0].start.x == 0);
+  assert(g.lines[0].start.y == 0);
+  assert(g.lines[0].end.x == 0.5);
   assert(g.lines[1].start.x == g.lines[0].end.x);
-  assert(g.lines[1].start.y == g.lines[0].end.y)
-  assert(g.lines[1].end.x == 1)
-  assert(g.lines[1].end.y == 0)
+  assert(g.lines[1].start.y == g.lines[0].end.y);
+  assert(g.lines[1].end.x == 1);
+  assert(g.lines[1].end.y == 0);
 });
 
 it("should be the mirror of its mirror", () => {
-    let g = generatorFromData(SampleFractal);
-    assert(g.mirror.mirror === g)
+  let g = generatorFromData(SampleFractal);
+  assert(g.mirror.mirror === g);
 });
 
 it("should preserve mirroring", () => {
-    let g = generatorFromData(SampleFractal2);
-    assert(g.generators[0] === g)
-    assert(g.generators[1] === g.mirror)
-    assert(g.mirror.generators[0] === g.mirror)
-    assert(g.mirror.generators[1] === g)
-
+  let g = generatorFromData(SampleFractal2);
+  assert(g.generators[0] === g);
+  assert(g.generators[1] === g.mirror);
+  assert(g.mirror.generators[0] === g.mirror);
+  assert(g.mirror.generators[1] === g);
 });

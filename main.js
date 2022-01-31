@@ -3,8 +3,10 @@ import {
   Rectangle,
   Arc,
   ArrowLine,
-  generatePointsAndArrowLinesFromGenerator,
+  generatePointsAndArrowLinesFromGeneratorData,
 } from "./shapes.js";
+
+import { FractalControl } from "./fractalControl.js";
 
 import { Koch } from "./exampleGenerators.js";
 
@@ -82,11 +84,11 @@ window.requestAnimFrame = (function (callback) {
   );
 })();
 
-function raw_draw(ctx, offScreenCanvas, shapes) {
+function raw_draw(ctx, offScreenCanvas, fractalControls) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(offScreenCanvas, 0, 0);
-  for (const shape of shapes) {
-    shape.render(ctx);
+  for (const fractalControl of fractalControls) {
+    fractalControl.render(ctx);
   }
 }
 
@@ -100,23 +102,13 @@ function init() {
   var startX = 0;
   var startY = 0;
   var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
-  var rectangle = new Rectangle(50, 50, 100, 100);
-  var circle = new Arc(200, 140, 50);
-  // var points = [
-  //   new Point(40, 220),
-  //   new Point(240, 220),
-  //   new Point(20, 20),
-  //   new Point(30, 30),
-  // ];
-  // var lines = [new ArrowLine(points[0], points[1], false)];
 
-  var [points, lines] = generatePointsAndArrowLinesFromGenerator(Koch);
-  for (const point of points) {
-    point.x = 50 + 400 * point.x;
-    point.y = 200 + 400 * point.y;
-  }
+  let baseLineData = {
+    start: { x: 50, y: 220 },
+    end: { x: 400, y: 220 },
+  };
+  var fractalControls = [new FractalControl(baseLineData, Koch, 2)];
   var canvasIsPanning = false;
-  var shapes = [rectangle, circle].concat(lines).concat(points);
 
   document.getElementById("Draw").onclick = () => {
     if (!isDrawingLoop) {
@@ -139,37 +131,17 @@ function init() {
         startY = y;
         canvasIsPanning = true;
 
-        if (canvasIsPanning) {
-          for (const point of points) {
-            point.isDragging = point.isHit(x, y);
-            if (point.isDragging) {
-              canvasIsPanning = false;
-              break;
-            }
-          }
-        }
-        if (canvasIsPanning) {
-          for (const line of lines) {
-            if (line.isTriangleHit(ctx, { x: x, y: y })) {
-              line.isTriangleDragging = true;
-              canvasIsPanning = false;
-              break;
-            } else if (line.isLineHit(ctx, { x: x, y: y })) {
-              line.start.isDragging = true;
-              line.end.isDragging = true;
-              canvasIsPanning = false;
-              break;
-            }
+        for (const fractalControl of fractalControls) {
+          if (fractalControl.onDown(ctx, { x: x, y: y })) {
+            canvasIsPanning = false;
+            break;
           }
         }
         break;
 
       case "up":
-        for (const point of points) {
-          point.isDragging = false;
-        }
-        for (const line of lines) {
-          line.isTriangleDragging = false;
+        for (const fractalControl of fractalControls) {
+          fractalControl.onUp();
         }
         canvasIsPanning = false;
         break;
@@ -180,26 +152,12 @@ function init() {
         startX = x;
         startY = y;
 
-        for (const point of points) {
-          if (point.isDragging) {
-            point.x += dx;
-            point.y += dy;
-          }
+        for (const fractalControl of fractalControls) {
+          fractalControl.onMove({ x: x, y: y }, dx, dy);
         }
-        for (const line of lines) {
-          if (line.isTriangleDragging) {
-            let quadrant = line.getPointQuadrant({ x: x, y: y });
-            if (quadrant.x < 0) {
-              [line.start, line.end] = [line.end, line.start];
-            }
-            line.mirrored = quadrant.y > 0 ? true : false;
-          }
-        }
-
         if (canvasIsPanning) {
-          for (const point of points) {
-            point.x += dx;
-            point.y += dy;
+          for (const fractalControl of fractalControls) {
+            fractalControl.translateAll(dx, dy);
           }
         }
         break;
@@ -213,7 +171,7 @@ function init() {
         break;
     }
 
-    raw_draw(ctx, offScreenCanvas, shapes);
+    raw_draw(ctx, offScreenCanvas, fractalControls);
   });
 
   var count = 0;
@@ -231,7 +189,7 @@ function init() {
 
     //count = (count + 1) % colors.length;
     count++;
-    raw_draw(ctx, offScreenCanvas, shapes);
+    raw_draw(ctx, offScreenCanvas, fractalControls);
   }
 
   draw();

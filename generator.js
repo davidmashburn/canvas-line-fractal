@@ -1,3 +1,10 @@
+function cloneLine(line) {
+    return {
+        start: { x: line.start.x, y: line.start.y },
+        end: { x: line.end.x, y: line.end.y },
+      };
+}
+
 function mirrorLine(line) {
   return {
     start: { x: line.start.x, y: -line.start.y },
@@ -11,7 +18,7 @@ var Generator = function (
   generators = undefined,
   mirror = undefined
 ) {
-  this.lines = lines;
+  this.lines = lines.map(cloneLine)
   this.isMirror = isMirror;
   this.generators = generators;
   if (!generators) {
@@ -30,15 +37,10 @@ var Generator = function (
     );
   }
 
-  this.updateMirror = function () {
+  this.resetMirror = function () {
     this.mirror.lines = this.lines.map(mirrorLine);
-    this.mirror.generators = this.generators.map((g) => g.mirror);
     this.mirror.isMirror = !this.isMirror;
-  };
-
-  this.setLines = function (lines) {
-    this.lines = lines;
-    this.mirror.lines = this.lines.map(mirrorLine);
+    this.mirror.generators = this.generators.map((g) => g.mirror);
   };
 
   this.setGenerators = function (generators) {
@@ -48,13 +50,13 @@ var Generator = function (
 };
 
 function generatorFromData(data) {
-  let points = data.points.map((point) => {
+  const points = data.points.map((point) => {
     return { x: point[0], y: -point[1] };
   });
-  let lines = data.lines.map((line) => {
+  const lines = data.lines.map((line) => {
     return { start: points[line[0]], end: points[line[1]] };
   });
-  let generator = new Generator(lines);
+  const generator = new Generator(lines);
   generator.setGenerators(
     data.lines.map((line) => (line[2] ? generator.mirror : generator))
   );

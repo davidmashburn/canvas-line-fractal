@@ -115,19 +115,24 @@ var Point = function (x, y, color = "red") {
     ctx.restore();
   };
 
-  this.isHit = function (x, y) {
-    var dx = this.x - x;
-    var dy = this.y - y;
-    if (dx * dx + dy * dy < this.radius * this.radius) {
-      return true;
-    }
-    return false;
+  this.isHit = function (eventPoint) {
+    var dx = this.x - eventPoint.x;
+    var dy = this.y - eventPoint.y;
+    return dx * dx + dy * dy < this.radius * this.radius;
   };
 };
 
-var ArrowLine = function (start, end, mirrored = false) {
+var ArrowLine = function (
+  start,
+  end,
+  externalStartPointIndex,
+  externalEndPointIndex,
+  mirrored = false
+) {
   this.start = start;
   this.end = end;
+  this.externalStartPointIndex = externalStartPointIndex;
+  this.externalEndPointIndex = externalEndPointIndex;
   this.mirrored = mirrored;
 
   this.trianglePath = undefined;
@@ -209,207 +214,41 @@ var ArrowLine = function (start, end, mirrored = false) {
       y: transformedPoint.y >= 0 ? 1 : -1,
     };
   };
+  this.quadrantActions = (eventPoint) => {
+    const point = transformPointReverse(eventPoint, this);
+    return {
+      swap: point.x < 0.5,
+      mirrored: point.y >= 0,
+    };
+  };
+  this.swapPoints = () => {
+    [this.start, this.end] = [this.end, this.start];
+    [this.externalStartPointIndex, this.externalEndPointIndex] = [
+      this.externalEndPointIndex,
+      this.externalStartPointIndex,
+    ];
+  };
 };
 
-function generatePointsAndArrowLinesFromGeneratorData(generatorData) {
-  let points = generatorData.points.map((point) => new Point(point[0], -point[1]));
-  let lines = generatorData.lines.map(
-    (line) => new ArrowLine(points[line[0]], points[line[1]], line[2])
+function generatePointsAndArrowLinesFromGeneratorData(generatorData, baseLine) {
+  const generatorPoints = generatorData.points.map((point) => {
+    return { x: point[0], y: -point[1] };
+  });
+  const points = generatorPoints.map((point) => {
+    const newPoint = transformPoint({ x: point.x, y: point.y }, baseLine);
+    return new Point(newPoint.x, newPoint.y, "red");
+  });
+  const lines = generatorData.lines.map(
+    (line) =>
+      new ArrowLine(points[line[0]], points[line[1]], line[0], line[1], line[2])
   );
   return [points, lines];
 }
-
-// CONTINUE PORT HERE
-// MORE ARROWLINE:
-//     def CheckMouse(self,where):
-//         Update() #just in case the points have moved
-
-//         #Set up a float line to represent the normal line (screen coordinates)
-//         line1=GetFloatLine()
-
-//         #get the length of the line
-//         lengthLine = GetFloatLineLength()
-
-//         #Set up a rotated, translated version of the line (same in both coordinates)
-//         line1Rotated=[0.,0.,lengthLine,0.]
-
-//         whereFloat = where
-//         whereRotatedFloat=[None,None]
-
-//         TransformPointReverse(whereRotatedFloat,line1,whereFloat) #flow is <-- (sorry, I know that makes no sense)
-
-//         #set up a point that will be in the frame of the rotated line (cartesian coordinates)
-//         whereRotated = [ int(whereRotatedFloat[0] * lengthLine),
-//                         -int(whereRotatedFloat[1] * lengthLine) ]
-
-//         #begin checking
-//         if lengthLine > ARROW_LENGTH  and  arrowEnabled == true :
-//             tipX = int(int(lengthLine) - POINT_RADIUS - 1)
-//             backX = int(tipX - ARROW_LENGTH)
-
-//             if mirrored==false:
-//                 if whereRotated[1] >= 0 and whereRotated[0] >= backX  and
-//                    whereRotated[1] <= -whereRotated[0] + tipX:
-//                     return 1 #arrow hit
-//             else: #mirrored==true
-//                 if whereRotated[1] <= 0 and whereRotated[0] >= backX  and
-//                    whereRotated[1] >= whereRotated[1] - tipX:
-//                     return 1 #arrow hit
-
-//         if lengthLine > 0:
-//             if whereRotated[0] <= lengthLine and whereRotated[0] >= 0 and
-//                whereRotated[1] <= POINT_RADIUS  and whereRotated[1] >= -POINT_RADIUS:
-//                 return 2 #line hit
-
-//         return 0 #continue checking
-//     def DoMouse(self,where):
-//         Update() #just in case the points have moved
-
-//         #Set up a float line to represent the normal line (screen coordinates)
-//         line1=GetFloatLine()
-
-//         #get the length of the line
-//         lengthLine = GetFloatLineLength()
-
-//         #Set up a rotated, translated version of the line (same in both coordinates)
-//         line1Rotated=[0.,0.,lengthLine,0.]
-
-//         whereFloat = where
-//         whereRotatedFloat=[None,None]
-
-//         TransformPointReverse(whereRotatedFloat,line1,whereFloat) #flow is <-- (sorry, I know that makes no sense)
-
-//         #set up a point that will be in the frame of the rotated line (cartesian coordinates)
-//         whereRotated = [ int(whereRotatedFloat[0] * lengthLine),
-//                         -int(whereRotatedFloat[1] * lengthLine) ]
-
-//         #begin checking
-//         if lengthLine > ARROW_LENGTH  and  arrowEnabled == true :
-//             tipX = int(int(lengthLine) - POINT_RADIUS - 1)
-//             backX = int(tipX - ARROW_LENGTH)
-
-//             if mirrored==false:
-//                 if whereRotated[1] >= 0 and whereRotated[0] >= backX  and
-//                    whereRotated[1] <= -whereRotated[0] + tipX:
-//                     TrackArrow(where)
-//                     return 1 #Tracking function executed.  Don't check any other ArrowLineDNM's
-//             else: #mirrored==true
-//                 if whereRotated[1] <= 0 and whereRotated[0] >= backX  and
-//                    whereRotated[1] >= whereRotated[1] - tipX:
-//                     TrackArrow(where);
-//                     return 1 #Tracking function executed.  Don't check any other ArrowLineDNM's
-
-//         if lengthLine > 0:
-//             if whereRotated[0] <= lengthLine and whereRotated[0] >= 0 and
-//                whereRotated[1] <= POINT_RADIUS  and whereRotated[1] >= -POINT_RADIUS:
-//                 TrackMotion(where)
-//                 return 2 #Tell FractalObject to execute tracking function.  Don't check any other ArrowLineDNM's
-
-//         return 0 #continue checking
-//     def TrackArrow(self,oldCursor):
-//         currentQuadrant=0 #quadrant can be anywhere from 1 to 4.  0 is NULL, senseless
-
-//         if mirrored==false:
-//             currentQuadrant = 1
-//         else: #mirrored==true
-//             currentQuadrant = 4
-
-//         #EventRecord event[1];
-//         #RgnHandle tempRgnHnd=NewRgn();
-
-//         while True:
-//             WaitNextEvent(everyEvent, event,0, tempRgnHnd)
-
-//             if event.what == mouseUp:
-//                 break
-
-//             eventPt=event.where
-//             GlobalToLocal(eventPt)
-
-//             if eventPt[0]!=cursor[0] or eventPt[1]!=cursor[1]:
-//                 cursor = eventPt #last point the cursor was at
-
-//                 currentQuadrant = self.GetQuadrantAboutMidpoint(cursor)
-
-//                 #make mirror correct
-//                 if currentQuadrant==1 or currentQuadrant==3:
-//                     mirrored=False
-//                 else:
-//                     mirrored=True;
-
-//                 #make the order of the points correct
-//                 if currentQuadrant==2 or currentQuadrant==3:
-//                     temp = start
-//                     start = end
-//                     end = temp
-//                 DrawEverything()
-//     def TrackMotion(self,oldCursor):
-//         oldP1=self.start.position
-//         oldP2=self.end.position
-
-//         #EventRecord event[1]
-//         #RgnHandle tempRgnHnd=NewRgn()
-
-//         while True:
-//             WaitNextEvent(everyEvent, event,0, tempRgnHnd)
-
-//             if event.what == mouseUp:
-//                 DrawEverything()
-//                 break
-
-//             eventPt=event.where
-//             GlobalToLocal(eventPt)
-
-//             if eventPt.h!=cursor.h or eventPt.v!=cursor.v:
-//             {
-//                 cursor = eventPt
-
-//                 self.start.position = [oldP1[0] + ( cursor[0] - oldCursor[0] ),
-//                                        oldP1[1] + ( cursor[1] - oldCursor[1] )]
-
-//                 self.end.position = [oldP2[0] + ( cursor[0] - oldCursor[0] ),
-//                                      oldP2[1] + ( cursor[1] - oldCursor[1] )]
-//                 DrawEverything()
-//             DrawEverything()
-//     def GetQuadrantAboutMidpoint(self,point1):
-//         self.Update() #just in case the points have moved
-
-//         #(cartesian coordinates)
-//         test = [ testPoint[0] , -testPoint[1] ]
-
-//         #(cartesian coordinates)
-//         midpoint=[ float( point1[0] + point2[0] ) / 2.0 ,
-//                               -float( point1[1] + point2[1] ) / 2.0 ]
-
-//         #Set up a float line to represent the normal line (cartesian coordinates)
-//         line1 = [ midpoint[0], midpoint[1], point2[0], -point2[1]]
-
-//         #set up a point that will be in the frame of the rotated line (cartesian coordinates)
-//         testRotated=[None,None]
-
-//         TransformPointReverse(testRotated,line1,test) #flow is <-- (sorry, I know that makes no sense)
-
-//         if testRotated[0]>=0: #x
-//             if testRotated[1]>=0: #y
-//                 return 1
-//             else:
-//                 return 4
-//         else:
-//             if testRotated[1]>=0: #y
-//                 return 2
-//             else:
-//                 return 3
-
-//         return 0 #invalid value
-//     def GetFloatLine(self,line1):
-//         return point1+point2 # wow, it really might be that easy!
-//     def GetFloatLineLength(self):
-//         return length_line([point1[0], point1[1], point2[0], point2[1]])
 
 export {
   Point,
   Rectangle,
   Arc,
   ArrowLine,
-  generatePointsAndArrowLinesFromGenerator,
+  generatePointsAndArrowLinesFromGeneratorData,
 };
