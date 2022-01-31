@@ -1,4 +1,12 @@
-import { Point, Rectangle, Arc, ArrowLine } from "./shapes.js";
+import {
+  Point,
+  Rectangle,
+  Arc,
+  ArrowLine,
+  generatePointsAndArrowLinesFromGenerator,
+} from "./shapes.js";
+
+import { Koch } from "./exampleGenerators.js";
 
 var MouseTouchTracker = function (window, canvas, callback) {
   var canvasIsDragging = false;
@@ -94,13 +102,19 @@ function init() {
   var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
   var rectangle = new Rectangle(50, 50, 100, 100);
   var circle = new Arc(200, 140, 50);
-  var points = [
-    new Point(40, 220),
-    new Point(240, 220),
-    new Point(20, 20),
-    new Point(30, 30),
-  ];
-  var lines = [new ArrowLine(points[0], points[1], false)];
+  // var points = [
+  //   new Point(40, 220),
+  //   new Point(240, 220),
+  //   new Point(20, 20),
+  //   new Point(30, 30),
+  // ];
+  // var lines = [new ArrowLine(points[0], points[1], false)];
+
+  var [points, lines] = generatePointsAndArrowLinesFromGenerator(Koch);
+  for (const point of points) {
+    point.x = 50 + 400 * point.x;
+    point.y = 200 + 400 * point.y;
+  }
   var canvasIsPanning = false;
   var shapes = [rectangle, circle].concat(lines).concat(points);
 
