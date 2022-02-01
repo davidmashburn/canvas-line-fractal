@@ -38,7 +38,6 @@ function drawFractal(ctx, generator, lineRef, depth) {
       if (DRAW_ALL_LINES) {
         drawLine(ctx, line);
       }
-      console.log(line);
       const newLine = transformLine(line, lineRef);
 
       drawFractal(ctx, gen, newLine, depth - 1);
@@ -182,11 +181,15 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
       if (actions.swap) {
         [line.start, line.end] = [line.end, line.start];
       }
-      line.mirrored = actions.mirrored;
+      this.baseLine.mirrored = actions.mirrored ^ actions.swap;
+      if (this.generator.isMirror ^ this.baseLine.mirrored) {
+        this.generator = this.generator.mirror;
+      }
       updatePoints = true;
     }
     for (const [lineIndex, line] of this.lines.entries()) {
       if (line.isTriangleDragging) {
+        const gen = this.generator.generators[lineIndex];
         const genLine = this.generator.lines[lineIndex];
         const mirrorLine = this.generator.mirror.lines[lineIndex];
         const actions = line.quadrantActions(eventPoint);
@@ -196,10 +199,12 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
             (mirrorLine.start, mirrorLine.end)
           ] = [mirrorLine.end, mirrorLine.start];
         }
-        // this smells wrong:
-        line.mirrored = actions.mirrored;
-        genLine.isMirror = actions.mirrored;
-        mirrorLine.isMirror = !actions.mirrored;
+        line.mirrored = actions.mirrored ^ actions.swap;
+
+        if (gen.isMirror ^ line.mirrored) {
+          this.generator.generators[lineIndex] = gen.mirror;
+        }
+        updateGenerator = true;
       }
     }
     if (updatePoints && updateGenerator) {
