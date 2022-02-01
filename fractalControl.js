@@ -1,4 +1,8 @@
-import { transformPoint, transformPointReverse } from "./helpers.js";
+import {
+  transformPoint,
+  transformLine,
+  transformPointReverse,
+} from "./helpers.js";
 import {
   ArrowLine,
   generatePointsAndArrowLinesFromGeneratorData,
@@ -6,7 +10,43 @@ import {
 } from "./shapes.js";
 import { generatorFromData } from "./generator.js";
 
-var FractalControl = function (baseLineData, generatorData, maxDepth = 1) {
+function approximateLength(line) {
+  return (
+    Math.abs(line.end.x - line.start.x) + Math.abs(line.end.y - line.start.y)
+  );
+}
+
+const MIN_LENGTH = 1;
+const DRAW_ALL_LINES = false;
+
+function drawLine(ctx, line) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(line.start.x, line.start.y);
+  ctx.lineTo(line.end.x, line.end.y);
+  ctx.strokeStyle = "green";
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFractal(ctx, generator, lineRef, depth) {
+  if (depth <= 0 || approximateLength(lineRef) <= MIN_LENGTH) {
+    drawLine(ctx, lineRef);
+  } else {
+    for (const [i, gen] of generator.generators.entries()) {
+      const line = generator.lines[i];
+      if (DRAW_ALL_LINES) {
+        drawLine(ctx, line);
+      }
+      console.log(line);
+      const newLine = transformLine(line, lineRef);
+
+      drawFractal(ctx, gen, newLine, depth - 1);
+    }
+  }
+}
+
+var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
   this.maxDepth = maxDepth;
   this.baseStartPoint = new Point(
     baseLineData.start.x,
@@ -28,6 +68,7 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 1) {
   );
   this.generator = generatorFromData(generatorData);
   this.render = (ctx) => {
+    drawFractal(ctx, this.generator, this.baseLine, this.maxDepth);
     this.baseLine.render(ctx);
     for (const line of this.lines.concat([this.baseLine])) {
       line.render(ctx);
@@ -148,7 +189,7 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 1) {
       if (line.isTriangleDragging) {
         const genLine = this.generator.lines[lineIndex];
         const mirrorLine = this.generator.mirror.lines[lineIndex];
-        const actions = this.baseLine.quadrantActions(eventPoint);
+        const actions = line.quadrantActions(eventPoint);
         if (actions.swap) {
           line.swapPoints();
           [genLine.start, genLine.end] = [genLine.end, genLine.start][

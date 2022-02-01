@@ -103,7 +103,7 @@ function init() {
     start: { x: 50, y: 220 },
     end: { x: 400, y: 220 },
   };
-  var fractalControls = [new FractalControl(baseLineData, Koch, 2)];
+  var fractalControls = [new FractalControl(baseLineData, Koch, 4)];
   var canvasIsPanning = false;
 
   document.getElementById("Draw").onclick = () => {
