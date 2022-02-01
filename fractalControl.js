@@ -71,7 +71,7 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 1) {
         end: line.externalEndPointIndex,
       };
     });
-    const newPointArrays = Array(this.points.length).fill([]);
+    const newPointArrays = this.points.map((point) => []);
     for (const [i, line] of this.generator.lines.entries()) {
       const pointIndexes = linePointIndexes[i];
       newPointArrays[pointIndexes.start].push(line.start);

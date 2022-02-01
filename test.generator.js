@@ -20,7 +20,6 @@ function assert(isTrue) {
 
 it("should have the lines", () => {
   let g = generatorFromData(SampleFractal);
-  console.log(g.lines[0].start);
   assert(g.lines[0].start.x == 0);
   assert(g.lines[0].start.y == 0);
   assert(g.lines[0].end.x == 0.5);
