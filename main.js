@@ -1,9 +1,5 @@
 import {
-  Point,
   Rectangle,
-  Arc,
-  ArrowLine,
-  generatePointsAndArrowLinesFromGeneratorData,
 } from "./shapes.js";
 
 import { FractalControl } from "./fractalControl.js";

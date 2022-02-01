@@ -5,9 +5,7 @@ import {
   roundPoint,
   pointDist,
   transformPoint,
-  transformLine,
   transformPointReverse,
-  transformLineReverse,
   addPolygonToPath,
 } from "./helpers.js";
 

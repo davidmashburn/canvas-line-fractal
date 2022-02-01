@@ -4,7 +4,7 @@ import {
   generatePointsAndArrowLinesFromGeneratorData,
   Point,
 } from "./shapes.js";
-import { Generator, generatorFromData } from "./generator.js";
+import { generatorFromData } from "./generator.js";
 
 var FractalControl = function (baseLineData, generatorData, maxDepth = 1) {
   this.maxDepth = maxDepth;
