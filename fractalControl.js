@@ -21,6 +21,7 @@ const MIN_LENGTH = 1;
 const DRAW_ALL_LINES = false;
 
 function drawLine(ctx, line) {
+  globalCounter++;
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(line.start.x, line.start.y);
@@ -31,9 +32,17 @@ function drawLine(ctx, line) {
   ctx.restore();
 }
 
-function drawFractal(ctx, generator, lineRef, depth) {
+var globalCounter = 0;
+
+function* drawFractal(ctx, generator, lineRef, depth) {
+  console.log(depth);
   if (depth <= 0 || approximateLength(lineRef) <= MIN_LENGTH) {
     drawLine(ctx, lineRef);
+    
+    if (globalCounter > 1000) {
+      globalCounter = 0;
+      yield null;
+    }
   } else {
     for (const [i, gen] of generator.generators.entries()) {
       const line = generator.lines[i];
@@ -42,9 +51,10 @@ function drawFractal(ctx, generator, lineRef, depth) {
       }
       const newLine = transformLine(line, lineRef);
 
-      drawFractal(ctx, gen, newLine, depth - 1);
+      yield* drawFractal(ctx, gen, newLine, depth - 1);
     }
   }
+  return;
 }
 
 var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
@@ -69,7 +79,8 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
   );
   this.generator = generatorFromData(generatorData);
   this.render = (ctx) => {
-    drawFractal(ctx, this.generator, this.baseLine, this.maxDepth);
+    let d = drawFractal(ctx, this.generator, this.baseLine, this.maxDepth);
+    d.next();
     this.baseLine.render(ctx);
     for (const line of this.lines.concat([this.baseLine])) {
       line.render(ctx);
