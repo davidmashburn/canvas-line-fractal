@@ -1,4 +1,8 @@
-import { randomColor, drawFractal } from "./drawFractal.js";
+import {
+  randomColor,
+  getDrawFractalIterator,
+  drawFractal,
+} from "./drawFractal.js";
 
 import { Rectangle } from "./shapes.js";
 
@@ -80,15 +84,17 @@ window.requestAnimFrame = (function (callback) {
   );
 })();
 
-function raw_draw(ctx, offScreenCanvas, fractalControls) {
+function raw_draw(ctx, offScreenCanvas, fractalControls, hideControls) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(offScreenCanvas, 0, 0);
-  for (const fractalControl of fractalControls) {
-    fractalControl.render(ctx);
+  if (!hideControls) {
+    for (const fractalControl of fractalControls) {
+      fractalControl.render(ctx);
+    }
   }
 }
 
-var isDrawingLoop = false;
+var isDrawingLoop = true;
 
 function init() {
   var canvas = document.getElementById("mainCanvas");
@@ -97,16 +103,20 @@ function init() {
   var ctx_off = offScreenCanvas.getContext("2d");
   var startX = 0;
   var startY = 0;
-  var rectangle_off = new Rectangle(150, 150, 100, 100, "red");
 
   let baseLineData = {
     start: { x: 50, y: 220 },
     end: { x: 400, y: 220 },
   };
-  var fractalControls = [new FractalControl(baseLineData, Koch, 9)];
+  var drawingOptions = {
+    maxDepth: false,
+    drawAllLines: false,
+  };
+  var fractalControls = [new FractalControl(baseLineData, Koch, 20)];
+  var fc0 = fractalControls[0];
   var canvasIsPanning = false;
 
-  document.getElementById("Draw").onclick = () => {
+  document.getElementById("StartStop").onclick = () => {
     if (!isDrawingLoop) {
       isDrawingLoop = true;
       loop();
@@ -119,6 +129,19 @@ function init() {
   canvas.height = window.innerHeight * 0.95 - 10;
   offScreenCanvas.width = canvas.width;
   offScreenCanvas.height = canvas.height;
+
+  var drawFractalIterator;
+
+  function refreshDrawFractalIter() {
+    drawFractalIterator = getDrawFractalIterator(
+      ctx_off,
+      fc0.generator,
+      fc0.baseLine,
+      drawingOptions.maxDepth,
+      drawingOptions.drawAllLines
+    );
+  }
+  refreshDrawFractalIter();
 
   var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
     switch (evtType) {
@@ -143,6 +166,7 @@ function init() {
         break;
 
       case "move":
+        ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
         var dx = x - startX;
         var dy = y - startY;
         startX = x;
@@ -156,6 +180,7 @@ function init() {
             fractalControl.translateAll(dx, dy);
           }
         }
+        refreshDrawFractalIter();
         break;
 
       case "resize":
@@ -163,32 +188,48 @@ function init() {
         canvas.height = window.innerHeight * 0.95 - 10;
         offScreenCanvas.width = canvas.width;
         offScreenCanvas.height = canvas.height;
-        rectangle_off.render(ctx_off);
+        ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
+        refreshDrawFractalIter();
         break;
     }
 
-    raw_draw(ctx, offScreenCanvas, fractalControls);
+    raw_draw(
+      ctx,
+      offScreenCanvas,
+      fractalControls,
+      drawingOptions.hideControls
+    );
   });
 
   var count = 0;
-  var r;
-  function draw() {
-    let colors = ["red", "orange", "yellow", "green", "cyan", "blue", "violet"];
-    rectangle_off.color = colors[count % colors.length];
-    //r = (bottom, top) => bottom + Math.floor(Math.random() * (top - bottom));
-    // rectangle_off.color = (
-    //   `hsla(${r(0, 360)}, ${r(50, 100)}%, ${r(20, 50)}%, 1)`
-    // );
-    rectangle_off.x = 150 + (count % 400);
-    rectangle_off.y = 150 + ((count / 400) % 400);
-    rectangle_off.render(ctx_off);
+  function draw(maxDepth, drawAllLines, hideControls) {
+    drawingOptions.hideControls = hideControls;
+    if (
+      drawingOptions.maxDepth != maxDepth ||
+      drawingOptions.drawAllLines != drawAllLines
+    ) {
+      drawingOptions.maxDepth = maxDepth;
+      drawingOptions.drawAllLines = drawAllLines;
 
-    //count = (count + 1) % colors.length;
+      ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
+      refreshDrawFractalIter();
+    }
+    for (let i = 0; i < 100; i++) {
+      if (drawFractalIterator.next().done) {
+        refreshDrawFractalIter();
+      }
+    }
+
     count++;
-    raw_draw(ctx, offScreenCanvas, fractalControls);
+    raw_draw(
+      ctx,
+      offScreenCanvas,
+      fractalControls,
+      drawingOptions.hideControls
+    );
   }
 
-  draw();
+  raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions.hideControls);
 
   return draw;
 }
@@ -199,6 +240,10 @@ var MAX_REFRESH = 10000;
 
 function loop() {
   let refreshRate = document.getElementById("RefreshRate").value;
+  let maxDepth = document.getElementById("Depth").value;
+  let drawAllLines = document.getElementById("DrawAllLines").checked;
+  let hideControls = document.getElementById("HideControls").checked;
+
   if (!refreshRate) {
     refreshRate = 1;
   } else if (MAX_REFRESH < refreshRate) {
@@ -211,9 +256,11 @@ function loop() {
     if (!isDrawingLoop) {
       break;
     }
-    draw();
+    draw(maxDepth, drawAllLines, hideControls);
   }
   if (isDrawingLoop) {
     requestAnimFrame(loop);
   }
 }
+
+loop();

@@ -31,7 +31,6 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
   );
   this.generator = generatorFromData(generatorData);
   this.render = (ctx) => {
-    drawFractal(ctx, this.generator, this.baseLine, this.maxDepth);
     this.baseLine.render(ctx);
     for (const line of this.lines.concat([this.baseLine])) {
       line.render(ctx);

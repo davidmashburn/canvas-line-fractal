@@ -25,20 +25,45 @@ function drawLine(ctx, line) {
   ctx.restore();
 }
 
-function drawFractal(ctx, generator, lineRef, depth, drawAllLines = false) {
+function* getDrawFractalIterator(
+  ctx,
+  generator,
+  lineRef,
+  depth,
+  drawAllLines = false
+) {
   if (depth <= 0 || approximateLength(lineRef) <= MIN_DRAW_LENGTH) {
     drawLine(ctx, lineRef);
+    yield null;
   } else {
     for (const [i, gen] of generator.generators.entries()) {
       const line = generator.lines[i];
-      if (drawAllLines) {
-        drawLine(ctx, line);
-      }
       const newLine = transformLine(line, lineRef);
+      if (drawAllLines) {
+        drawLine(ctx, newLine);
+      }
 
-      drawFractal(ctx, gen, newLine, depth - 1, drawAllLines);
+      yield* getDrawFractalIterator(ctx, gen, newLine, depth - 1, drawAllLines);
     }
   }
 }
 
-export { randomColor, drawLine, drawFractal };
+function drawFractal(ctx, generator, lineRef, depth, drawAllLines = false) {
+  const g = getDrawFractalIterator(
+    ctx,
+    generator,
+    lineRef,
+    depth,
+    drawAllLines
+  );
+  for (const _ of g) {
+  }
+}
+
+export {
+  rainbowColor,
+  randomColor,
+  drawLine,
+  getDrawFractalIterator,
+  drawFractal,
+};
