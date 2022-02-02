@@ -1,11 +1,6 @@
-import {
-  randomColor,
-  drawFractal,
-} from "./drawFractal.js";
+import { randomColor, drawFractal } from "./drawFractal.js";
 
-import {
-  Rectangle,
-} from "./shapes.js";
+import { Rectangle } from "./shapes.js";
 
 import { FractalControl } from "./fractalControl.js";
 

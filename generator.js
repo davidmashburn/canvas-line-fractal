@@ -1,8 +1,8 @@
 function cloneLine(line) {
-    return {
-        start: { x: line.start.x, y: line.start.y },
-        end: { x: line.end.x, y: line.end.y },
-      };
+  return {
+    start: { x: line.start.x, y: line.start.y },
+    end: { x: line.end.x, y: line.end.y },
+  };
 }
 
 function mirrorLine(line) {
@@ -18,7 +18,7 @@ var Generator = function (
   generators = undefined,
   mirror = undefined
 ) {
-  this.lines = lines.map(cloneLine)
+  this.lines = lines.map(cloneLine);
   this.isMirror = isMirror;
   this.generators = generators;
   if (!generators) {

@@ -1,16 +1,10 @@
-import {
-  transformPoint,
-  transformPointReverse,
-} from "./helpers.js";
+import { transformPoint, transformPointReverse } from "./helpers.js";
 
-import {
-  drawFractal
-} from "./drawFractal.js";
+import { drawFractal } from "./drawFractal.js";
 
 import {
   ArrowLine,
-
-generatePointsAndArrowLinesFromGeneratorData,
+  generatePointsAndArrowLinesFromGeneratorData,
   Point,
 } from "./shapes.js";
 import { generatorFromData } from "./generator.js";

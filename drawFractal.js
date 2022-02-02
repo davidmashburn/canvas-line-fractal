@@ -1,25 +1,15 @@
-import {
-  LINE_WIDTH,
-  RAINBOW_COLORS,
-  MIN_DRAW_LENGTH,
-} from "./constants.js";
+import { LINE_WIDTH, RAINBOW_COLORS, MIN_DRAW_LENGTH } from "./constants.js";
 
-import {
-  rand,
-  approximateLength,
-  transformLine,
-} from "./helpers.js";
+import { rand, approximateLength, transformLine } from "./helpers.js";
 
 var RAINBOW_COUNTER = 0;
 
 function rainbowColor() {
-  return RAINBOW_COLORS[(RAINBOW_COUNTER++) % 7];
+  return RAINBOW_COLORS[RAINBOW_COUNTER++ % 7];
 }
 
 function randomColor() {
-  return (
-    `hsla(${rand(0, 360)}, ${rand(50, 100)}%, ${rand(20, 50)}%, 1)`
-  );
+  return `hsla(${rand(0, 360)}, ${rand(50, 100)}%, ${rand(20, 50)}%, 1)`;
 }
 
 const FRACTAL_COLOR_FUN = randomColor;
@@ -51,8 +41,4 @@ function drawFractal(ctx, generator, lineRef, depth, drawAllLines = false) {
   }
 }
 
-export {
-  randomColor,
-  drawLine,
-  drawFractal,
-};
+export { randomColor, drawLine, drawFractal };

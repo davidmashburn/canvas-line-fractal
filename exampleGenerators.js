@@ -13,16 +13,16 @@ const SampleFractal = {
 };
 
 const SampleFractal2 = {
-    points: [
-      [0, 0],
-      [0.5, 0.5],
-      [1, 0],
-    ],
-    lines: [
-      [0, 1, false],
-      [1, 2, true],
-    ],
-  };
+  points: [
+    [0, 0],
+    [0.5, 0.5],
+    [1, 0],
+  ],
+  lines: [
+    [0, 1, false],
+    [1, 2, true],
+  ],
+};
 
 const Koch = {
   points: [
