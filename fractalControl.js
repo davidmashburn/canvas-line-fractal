@@ -3,6 +3,8 @@ import {
   transformLine,
   transformPointReverse,
   LINE_WIDTH,
+  rainbowColor,
+  randomColor,
 } from "./helpers.js";
 import {
   ArrowLine,
@@ -20,12 +22,14 @@ function approximateLength(line) {
 const MIN_LENGTH = 1;
 const DRAW_ALL_LINES = false;
 
+const FRACTAL_COLOR_FUN = randomColor;
+
 function drawLine(ctx, line) {
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(line.start.x, line.start.y);
   ctx.lineTo(line.end.x, line.end.y);
-  ctx.strokeStyle = "green";
+  ctx.strokeStyle = FRACTAL_COLOR_FUN();
   ctx.lineWidth = LINE_WIDTH;
   ctx.stroke();
   ctx.restore();

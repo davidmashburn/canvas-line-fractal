@@ -2,6 +2,23 @@ const LINE_WIDTH = window.matchMedia("(any-hover: none)").matches ? 2 : 1;
 const POINT_RADIUS = LINE_WIDTH * 5;
 const ARROW_LENGTH = POINT_RADIUS * 6;
 
+const RAINBOW_COLORS = ["red", "orange", "yellow", "green", "cyan", "blue", "violet"];
+var RAINBOW_COUNTER = 0;
+
+function rainbowColor() {
+  return RAINBOW_COLORS[RAINBOW_COUNTER++ % 7]
+}
+
+function rand(bottom, top) {
+  return bottom + Math.floor(Math.random() * (top - bottom));
+}
+
+function randomColor() {
+  return (
+    `hsla(${rand(0, 360)}, ${rand(50, 100)}%, ${rand(20, 50)}%, 1)`
+  );
+}
+
 function roundPoint(point) {
   return { x: Math.round(point.x), y: Math.round(point.y) };
 }
@@ -110,6 +127,8 @@ export {
   LINE_WIDTH,
   POINT_RADIUS,
   ARROW_LENGTH,
+  rainbowColor,
+  randomColor,
   roundPoint,
   sqrtSumSqr,
   pointDist,
