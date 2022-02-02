@@ -2,6 +2,7 @@ import {
   transformPoint,
   transformLine,
   transformPointReverse,
+  LINE_WIDTH,
 } from "./helpers.js";
 import {
   ArrowLine,
@@ -25,6 +26,7 @@ function drawLine(ctx, line) {
   ctx.moveTo(line.start.x, line.start.y);
   ctx.lineTo(line.end.x, line.end.y);
   ctx.strokeStyle = "green";
+  ctx.lineWidth = LINE_WIDTH;
   ctx.stroke();
   ctx.restore();
 }
