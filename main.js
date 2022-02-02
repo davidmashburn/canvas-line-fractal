@@ -1,4 +1,9 @@
 import {
+  randomColor,
+  drawFractal,
+} from "./drawFractal.js";
+
+import {
   Rectangle,
 } from "./shapes.js";
 
@@ -103,7 +108,7 @@ function init() {
     start: { x: 50, y: 220 },
     end: { x: 400, y: 220 },
   };
-  var fractalControls = [new FractalControl(baseLineData, Koch, 4)];
+  var fractalControls = [new FractalControl(baseLineData, Koch, 9)];
   var canvasIsPanning = false;
 
   document.getElementById("Draw").onclick = () => {

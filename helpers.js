@@ -1,22 +1,5 @@
-const LINE_WIDTH = window.matchMedia("(any-hover: none)").matches ? 2 : 1;
-const POINT_RADIUS = LINE_WIDTH * 5;
-const ARROW_LENGTH = POINT_RADIUS * 6;
-
-const RAINBOW_COLORS = ["red", "orange", "yellow", "green", "cyan", "blue", "violet"];
-var RAINBOW_COUNTER = 0;
-
-function rainbowColor() {
-  return RAINBOW_COLORS[RAINBOW_COUNTER++ % 7]
-}
-
 function rand(bottom, top) {
   return bottom + Math.floor(Math.random() * (top - bottom));
-}
-
-function randomColor() {
-  return (
-    `hsla(${rand(0, 360)}, ${rand(50, 100)}%, ${rand(20, 50)}%, 1)`
-  );
 }
 
 function roundPoint(point) {
@@ -29,6 +12,12 @@ function sqrtSumSqr(x, y) {
 
 function pointDist(start, end) {
   return sqrtSumSqr(end.x - start.x, end.y - start.y);
+}
+
+function approximateLength(line) {
+  return (
+    Math.abs(line.end.x - line.start.x) + Math.abs(line.end.y - line.start.y)
+  );
 }
 
 function convertToLocal(point, rect) {
@@ -124,14 +113,11 @@ function addPolygonToPath(path, points) {
 }
 
 export {
-  LINE_WIDTH,
-  POINT_RADIUS,
-  ARROW_LENGTH,
-  rainbowColor,
-  randomColor,
+  rand,
   roundPoint,
   sqrtSumSqr,
   pointDist,
+  approximateLength,
   convertToLocal,
   rectCenter,
   isPointInRect,

@@ -1,55 +1,19 @@
 import {
   transformPoint,
-  transformLine,
   transformPointReverse,
-  LINE_WIDTH,
-  rainbowColor,
-  randomColor,
 } from "./helpers.js";
+
+import {
+  drawFractal
+} from "./drawFractal.js";
+
 import {
   ArrowLine,
-  generatePointsAndArrowLinesFromGeneratorData,
+
+generatePointsAndArrowLinesFromGeneratorData,
   Point,
 } from "./shapes.js";
 import { generatorFromData } from "./generator.js";
-
-function approximateLength(line) {
-  return (
-    Math.abs(line.end.x - line.start.x) + Math.abs(line.end.y - line.start.y)
-  );
-}
-
-const MIN_LENGTH = 1;
-const DRAW_ALL_LINES = false;
-
-const FRACTAL_COLOR_FUN = randomColor;
-
-function drawLine(ctx, line) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(line.start.x, line.start.y);
-  ctx.lineTo(line.end.x, line.end.y);
-  ctx.strokeStyle = FRACTAL_COLOR_FUN();
-  ctx.lineWidth = LINE_WIDTH;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawFractal(ctx, generator, lineRef, depth) {
-  if (depth <= 0 || approximateLength(lineRef) <= MIN_LENGTH) {
-    drawLine(ctx, lineRef);
-  } else {
-    for (const [i, gen] of generator.generators.entries()) {
-      const line = generator.lines[i];
-      if (DRAW_ALL_LINES) {
-        drawLine(ctx, line);
-      }
-      const newLine = transformLine(line, lineRef);
-
-      drawFractal(ctx, gen, newLine, depth - 1);
-    }
-  }
-}
 
 var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
   this.maxDepth = maxDepth;

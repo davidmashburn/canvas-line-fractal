@@ -2,6 +2,9 @@ import {
   LINE_WIDTH,
   POINT_RADIUS,
   ARROW_LENGTH,
+} from "./constants.js"
+
+import {
   roundPoint,
   pointDist,
   transformPoint,
