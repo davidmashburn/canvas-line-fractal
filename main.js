@@ -49,6 +49,21 @@ var MouseTouchTracker = function (window, canvas, callback) {
   function onMove(evt) {
     if (canvasIsDragging) {
       evt.preventDefault();
+      if (evt.touches) {
+        let touch1 = evt.touches[0]
+        let touch2 = evt.touches[1];
+        if (touch1 && touch2) {
+          let p1 = {
+            x: touch1.clientX,
+            y: touch1.clientY
+          }
+          let p2 = {
+            x: touch2.clientX,
+            y: touch2.clientY
+          }
+          console.log(p1, p2);
+        }
+      }
       var coords = processEvent(evt);
       callback("move", coords.x, coords.y);
     }
