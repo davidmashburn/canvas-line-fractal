@@ -211,7 +211,6 @@ function init() {
           }
         }
         refreshDrawFractalIter(true);
-        console.log("move");
         break;
       case "two-finger":
         if (canvasIsPanning) {
@@ -237,7 +236,6 @@ function init() {
           }
           refreshDrawFractalIter(true);
         }
-        console.log("2fin");
         break;
       case "wheel":
         break;
