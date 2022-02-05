@@ -51,6 +51,13 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
       point.y += delta.y;
     }
   };
+  this.setBaseLine = (newBaseLine) => {
+    this.baseStartPoint.x = newBaseLine.start.x;
+    this.baseStartPoint.y = newBaseLine.start.y;
+    this.baseEndPoint.x = newBaseLine.end.x;
+    this.baseEndPoint.y = newBaseLine.end.y;
+    this.updatePointValuesFromGenerator();
+  };
   this.updateGeneratorValuesFromPoints = () => {
     const linePointIndexes = this.lines.map((line) => {
       return {

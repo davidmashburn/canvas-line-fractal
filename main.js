@@ -1,8 +1,6 @@
-import {zoomTransformLine, clonePoint, cloneLine} from "./helpers.js";
+import { zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
 
-import {
-  getDrawFractalIterator,
-} from "./drawFractal.js";
+import { getDrawFractalIterator } from "./drawFractal.js";
 
 import { Rectangle } from "./shapes.js";
 
@@ -63,7 +61,7 @@ var MouseTouchTracker = function (window, canvas, callback) {
   }
 
   function onWheel(evt) {
-    const evtPoint = { x: evt.clientX, y: evt.clientY };
+    const evtPoint = processEvent(evt);
     const evtPoint2 = undefined;
     const evtDelta = { x: evt.deltaX, y: evt.deltaY };
     callback("wheel", evtPoint, evtPoint2, evtDelta);
@@ -142,6 +140,13 @@ function init() {
     }
   };
 
+  document.getElementById("ResetZoom").onclick = () => {
+    for(const fractalControl of fractalControls) {
+      fractalControl.setBaseLine(baseLineData);
+    }
+    refreshDrawFractalIter(true);
+  };
+
   canvas.width = window.innerWidth * 0.75 - 10;
   canvas.height = window.innerHeight * 0.95 - 10;
   offScreenCanvas.width = canvas.width;
@@ -210,29 +215,42 @@ function init() {
       case "two-finger":
         if (canvasIsPanning) {
           canvasIsPanning = false;
-          origTwoFingerLine = {start: evtPoint, end: evtPoint2};
+          origTwoFingerLine = { start: evtPoint, end: evtPoint2 };
           for (const fractalControl of fractalControls) {
             fractalControl.origBaseLine = cloneLine(fractalControl.baseLine);
           }
         } else if (origTwoFingerLine) {
-          let newTwoFingerLine = {start: evtPoint, end: evtPoint2};
-          let newLine;
+          let newTwoFingerLine = { start: evtPoint, end: evtPoint2 };
+          let zoomedLine;
           for (const fractalControl of fractalControls) {
-            newLine = zoomTransformLine(
+            zoomedLine = zoomTransformLine(
               fractalControl.origBaseLine,
               origTwoFingerLine,
-              newTwoFingerLine,
+              newTwoFingerLine
             );
-            fractalControl.baseStartPoint.x = newLine.start.x;
-            fractalControl.baseStartPoint.y = newLine.start.y;
-            fractalControl.baseEndPoint.x = newLine.end.x;
-            fractalControl.baseEndPoint.y = newLine.end.y;
-            fractalControl.updatePointValuesFromGenerator();
+            fractalControl.setBaseLine(zoomedLine);
           }
           refreshDrawFractalIter(true);
         }
         break;
       case "wheel":
+        let oldLine = {
+          start: { x: evtPoint.x, y: evtPoint.y },
+          end: { x: evtPoint.x + 1, y: evtPoint.y },
+        };
+        console.log(evtPoint, evtDelta);
+        let newLine = cloneLine(oldLine);
+        newLine.end.x += evtDelta.y / 1000;
+        let zoomedLine;
+        for (const fractalControl of fractalControls) {
+          zoomedLine = zoomTransformLine(
+            fractalControl.baseLine,
+            oldLine,
+            newLine
+          );
+          fractalControl.setBaseLine(zoomedLine);
+        }
+        refreshDrawFractalIter(true);
         break;
 
       case "resize":
