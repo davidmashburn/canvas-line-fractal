@@ -1,4 +1,4 @@
-import { clonePoint } from "./helpers.js";
+import {zoomTransformLine, clonePoint, cloneLine} from "./helpers.js";
 
 import {
   getDrawFractalIterator,
@@ -136,6 +136,7 @@ function init() {
   var fractalControls = [new FractalControl(baseLineData, Koch, 20)];
   var fc0 = fractalControls[0];
   var canvasIsPanning = false;
+  var origTwoFingerLine;
 
   document.getElementById("StartStop").onclick = () => {
     if (!isDrawingLoop) {
@@ -153,7 +154,10 @@ function init() {
 
   var drawFractalIterator;
 
-  function refreshDrawFractalIter() {
+  function refreshDrawFractalIter(clear_ctx_off = false) {
+    if (clear_ctx_off) {
+      ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
+    }
     drawFractalIterator = getDrawFractalIterator(
       ctx_off,
       fc0.generator,
@@ -188,11 +192,10 @@ function init() {
           fractalControl.onUp();
         }
         canvasIsPanning = false;
+        origTwoFingerLine = undefined;
         break;
 
       case "move":
-        ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
-
         const delta = {
           x: evtPoint.x - startPoint.x,
           y: evtPoint.y - startPoint.y,
@@ -207,9 +210,35 @@ function init() {
             fractalControl.translateAll(delta);
           }
         }
-        refreshDrawFractalIter();
+        refreshDrawFractalIter(true);
+        console.log("move");
         break;
-
+      case "two-finger":
+        if (canvasIsPanning) {
+          canvasIsPanning = false;
+          origTwoFingerLine = {start: evtPoint, end: evtPoint2};
+          for (const fractalControl of fractalControls) {
+            fractalControl.origBaseLine = cloneLine(fractalControl.baseLine);
+          }
+        } else if (origTwoFingerLine) {
+          let newTwoFingerLine = {start: evtPoint, end: evtPoint2};
+          let newLine;
+          for (const fractalControl of fractalControls) {
+            newLine = zoomTransformLine(
+              fractalControl.origBaseLine,
+              origTwoFingerLine,
+              newTwoFingerLine,
+            );
+            fractalControl.baseStartPoint.x = newLine.start.x;
+            fractalControl.baseStartPoint.y = newLine.start.y;
+            fractalControl.baseEndPoint.x = newLine.end.x;
+            fractalControl.baseEndPoint.y = newLine.end.y;
+            fractalControl.updatePointValuesFromGenerator();
+          }
+          refreshDrawFractalIter(true);
+        }
+        console.log("2fin");
+        break;
       case "wheel":
         break;
 
@@ -218,8 +247,7 @@ function init() {
         canvas.height = window.innerHeight * 0.95 - 10;
         offScreenCanvas.width = canvas.width;
         offScreenCanvas.height = canvas.height;
-        ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
-        refreshDrawFractalIter();
+        refreshDrawFractalIter(true);
         break;
     }
 
@@ -240,9 +268,7 @@ function init() {
     ) {
       drawingOptions.maxDepth = maxDepth;
       drawingOptions.drawAllLines = drawAllLines;
-
-      ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
-      refreshDrawFractalIter();
+      refreshDrawFractalIter(true);
     }
     for (let i = 0; i < 100; i++) {
       if (drawFractalIterator.next().done) {

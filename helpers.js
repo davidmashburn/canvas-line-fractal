@@ -54,6 +54,12 @@ function isPointInOval(rect, point) {
   return adjRad <= 1;
 }
 
+//rotate&scale followed by translate
+// rotation matrix for reference:
+// ct, -st
+// st, ct
+// returns f(point)
+// where f(0,0)=start and f(1,0))=end
 function transformPoint(pointSrc, lineRef) {
   const start = lineRef.start;
   const end = lineRef.end;
@@ -79,6 +85,12 @@ The parameters have the same geometric meaning, not the same information flow me
 in other words, in transformPoint, pointSrc is the input, and pointDes is the output
 but in transformPointReverse, pointDes is the input, and pointSrc is the output
 */
+// translate followed by rotate&scale
+// reverse rotation matrix for reference:
+// ct, st
+// -st, ct
+// returns f(point)
+// where f(start)=(0,0) and f(end)=(1,0)
 function transformPointReverse(pointDes, lineRef) {
   const start = lineRef.start;
   const end = lineRef.end;
@@ -97,9 +109,25 @@ function transformPointReverse(pointDes, lineRef) {
 function transformLineReverse(lineDes, lineRef) {
   let lineSrc = {
     start: transformPointReverse(lineDes.start, lineRef),
-    end: transformPointReverse(lineDef.end, lineRef),
+    end: transformPointReverse(lineDes.end, lineRef),
   };
   return lineSrc;
+}
+
+// given two lines (old and new)
+// return f(point)
+// where f(old.start)=new.start and f(old.end)=new.end
+// uses old -> 0010 -> new
+function zoomTransformPoint(point, oldLine, newLine) {
+  const transPoint = transformPointReverse(point, oldLine);
+  return transformPoint(transPoint, newLine);
+}
+
+function zoomTransformLine(line, oldLine, newLine) {
+  return {
+    start:zoomTransformPoint(line.start, oldLine, newLine),
+    end:zoomTransformPoint(line.end, oldLine, newLine),
+  };
 }
 
 function addPolygonToPath(path, points) {
@@ -144,6 +172,8 @@ export {
   transformLine,
   transformPointReverse,
   transformLineReverse,
+  zoomTransformPoint,
+  zoomTransformLine,
   addPolygonToPath,
   clonePoint,
   cloneLine,

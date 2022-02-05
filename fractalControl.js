@@ -24,6 +24,7 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
     1,
     false
   );
+  this.origBaseLine; // for use in two-finger
 
   [this.points, this.lines] = generatePointsAndArrowLinesFromGeneratorData(
     generatorData,
@@ -120,6 +121,7 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
     for (const line of this.lines.concat([this.baseLine])) {
       line.isTriangleDragging = false;
     }
+    this.origBaseLine = undefined;
   };
   this.onMove = (eventPoint, delta) => {
     let updateGenerator = false;
