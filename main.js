@@ -6,7 +6,7 @@ import { Rectangle } from "./shapes.js";
 
 import { FractalControl } from "./fractalControl.js";
 
-import { Koch } from "./exampleGenerators.js";
+import { Koch, Dragon, TwinDragonSkin } from "./exampleGenerators.js";
 
 var MouseTouchTracker = function (window, canvas, callback) {
   var canvasIsDragging = false;
@@ -130,7 +130,19 @@ function init() {
   var fc0 = fractalControls[0];
   var canvasIsPanning = false;
   var origTwoFingerLine;
+  
+  var fractalPresets = {
+    Koch:Koch,
+    Dragon:Dragon,
+    TwinDragonSkin:TwinDragonSkin,
+  };
 
+  var presetsDropdown = document.getElementById("ChoosePreset");
+  presetsDropdown.options.length = 0;
+  for (const [name, generatorData] of Object.entries(fractalPresets)) {
+    presetsDropdown.options.add(new Option(name, name));
+  }
+  
   document.getElementById("StartStop").onclick = () => {
     if (!isDrawingLoop) {
       isDrawingLoop = true;
