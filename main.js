@@ -49,15 +49,21 @@ var MouseTouchTracker = function (window, canvas, callback) {
   function onMove(evt) {
     if (canvasIsDragging) {
       evt.preventDefault();
-      let evtPoint =
-        evt.touches && evt.touches[0]
-          ? { x: evt.touches[0].clientX, y: evt.touches[0].clientY }
-          : processEvent(evt);
-      let evtPoint2 =
-        evt.touches && evt.touches[1]
-          ? { x: evt.touches[1].clientX, y: evt.touches[1].clientY }
-          : undefined;
-      callback("move", evtPoint, evtPoint2);
+      let evtPoint, evtPoint2;
+      if (evt.touches && evt.touches[0] && evt.touches[1]) {
+        evtPoint = {
+          x: evt.touches[0].clientX,
+          y: evt.touches[0].clientY
+        }
+        evtPoint2 = {
+          x: evt.touches[1].clientX,
+          y: evt.touches[1].clientY
+        }
+        callback("two-finger", evtPoint, evtPoint2);
+      } else {
+        evtPoint = processEvent(evt);
+        callback("move", evtPoint);
+      }
     }
   }
 
