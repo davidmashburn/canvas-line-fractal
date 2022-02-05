@@ -41,13 +41,13 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
       point.render(ctx);
     }
   };
-  this.translateAll = (dx, dy) => {
+  this.translateAll = (delta) => {
     for (const point of this.points.concat([
       this.baseEndPoint,
       this.baseStartPoint,
     ])) {
-      point.x += dx;
-      point.y += dy;
+      point.x += delta.x;
+      point.y += delta.y;
     }
   };
   this.updateGeneratorValuesFromPoints = () => {
@@ -121,20 +121,20 @@ var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
       line.isTriangleDragging = false;
     }
   };
-  this.onMove = (eventPoint, dx, dy) => {
+  this.onMove = (eventPoint, delta) => {
     let updateGenerator = false;
     let updatePoints = false;
     for (const point of [this.baseStartPoint, this.baseEndPoint]) {
       if (point.isDragging) {
-        point.x += dx;
-        point.y += dy;
+        point.x += delta.x;
+        point.y += delta.y;
         updatePoints = true;
       }
     }
     for (const point of this.points) {
       if (point.isDragging) {
-        point.x += dx;
-        point.y += dy;
+        point.x += delta.x;
+        point.y += delta.y;
         updateGenerator = true;
       }
     }
