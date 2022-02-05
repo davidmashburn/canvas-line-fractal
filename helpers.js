@@ -112,6 +112,24 @@ function addPolygonToPath(path, points) {
   path.closePath();
 }
 
+function clonePoint(point) {
+  return { x: point.x, y: point.y };
+}
+
+function cloneLine(line) {
+  return {
+    start: clonePoint(line.start),
+    end: clonePoint(line.end),
+  };
+}
+
+function mirrorLine(line) {
+  return {
+    start: { x: line.start.x, y: -line.start.y },
+    end: { x: line.end.x, y: -line.end.y },
+  };
+}
+
 export {
   rand,
   roundPoint,
@@ -127,4 +145,7 @@ export {
   transformPointReverse,
   transformLineReverse,
   addPolygonToPath,
+  clonePoint,
+  cloneLine,
+  mirrorLine,
 };

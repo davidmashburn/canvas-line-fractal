@@ -1,7 +1,7 @@
+import { clonePoint } from "./helpers.js";
+
 import {
-  randomColor,
   getDrawFractalIterator,
-  drawFractal,
 } from "./drawFractal.js";
 
 import { Rectangle } from "./shapes.js";
@@ -35,7 +35,7 @@ var MouseTouchTracker = function (window, canvas, callback) {
     canvasIsDragging = true;
     evt.preventDefault();
     var coords = processEvent(evt);
-    callback("down", coords.x, coords.y);
+    callback("down", coords);
   }
 
   function onUp(evt) {
@@ -49,24 +49,23 @@ var MouseTouchTracker = function (window, canvas, callback) {
   function onMove(evt) {
     if (canvasIsDragging) {
       evt.preventDefault();
-      if (evt.touches) {
-        let touch1 = evt.touches[0]
-        let touch2 = evt.touches[1];
-        if (touch1 && touch2) {
-          let p1 = {
-            x: touch1.clientX,
-            y: touch1.clientY
-          }
-          let p2 = {
-            x: touch2.clientX,
-            y: touch2.clientY
-          }
-          console.log(p1, p2);
-        }
-      }
-      var coords = processEvent(evt);
-      callback("move", coords.x, coords.y);
+      let evtPoint =
+        evt.touches && evt.touches[0]
+          ? { x: evt.touches[0].clientX, y: evt.touches[0].clientY }
+          : processEvent(evt);
+      let evtPoint2 =
+        evt.touches && evt.touches[1]
+          ? { x: evt.touches[1].clientX, y: evt.touches[1].clientY }
+          : undefined;
+      callback("move", evtPoint, evtPoint2);
     }
+  }
+
+  function onWheel(evt) {
+    const evtPoint = { x: evt.clientX, y: evt.clientY };
+    const evtPoint2 = undefined;
+    const evtDelta = { x: evt.deltaX, y: evt.deltaY };
+    callback("wheel", evtPoint, evtPoint2, evtDelta);
   }
 
   function onResize(evt) {
@@ -83,6 +82,8 @@ var MouseTouchTracker = function (window, canvas, callback) {
 
   window.ontouchend = onUp;
   window.onmouseup = onUp;
+
+  window.onwheel = onWheel;
 };
 
 // Compatibility animation loop
@@ -116,8 +117,7 @@ function init() {
   var offScreenCanvas = document.getElementById("offScreenCanvas");
   var ctx = canvas.getContext("2d");
   var ctx_off = offScreenCanvas.getContext("2d");
-  var startX = 0;
-  var startY = 0;
+  var startPoint = { x: 0, y: 0 };
 
   let baseLineData = {
     start: { x: 50, y: 220 },
@@ -158,15 +158,19 @@ function init() {
   }
   refreshDrawFractalIter();
 
-  var mtt = new MouseTouchTracker(window, canvas, function (evtType, x, y) {
+  var mtt = new MouseTouchTracker(window, canvas, function (
+    evtType,
+    evtPoint,
+    evtPoint2 = undefined,
+    evtDelta = undefined
+  ) {
     switch (evtType) {
       case "down":
-        startX = x;
-        startY = y;
+        startPoint = clonePoint(evtPoint);
         canvasIsPanning = true;
 
         for (const fractalControl of fractalControls) {
-          if (fractalControl.onDown(ctx, { x: x, y: y })) {
+          if (fractalControl.onDown(ctx, evtPoint)) {
             canvasIsPanning = false;
             break;
           }
@@ -182,20 +186,25 @@ function init() {
 
       case "move":
         ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
-        var dx = x - startX;
-        var dy = y - startY;
-        startX = x;
-        startY = y;
+
+        const delta = {
+          x: evtPoint.x - startPoint.x,
+          y: evtPoint.y - startPoint.y,
+        };
+        startPoint = clonePoint(evtPoint);
 
         for (const fractalControl of fractalControls) {
-          fractalControl.onMove({ x: x, y: y }, dx, dy);
+          fractalControl.onMove(evtPoint, delta);
         }
         if (canvasIsPanning) {
           for (const fractalControl of fractalControls) {
-            fractalControl.translateAll(dx, dy);
+            fractalControl.translateAll(delta);
           }
         }
         refreshDrawFractalIter();
+        break;
+
+      case "wheel":
         break;
 
       case "resize":
