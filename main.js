@@ -64,7 +64,13 @@ var MouseTouchTracker = function (window, canvas, callback) {
     const evtPoint = processEvent(evt);
     const evtPoint2 = undefined;
     const evtDelta = { x: evt.deltaX, y: evt.deltaY };
-    callback("wheel", evtPoint, evtPoint2, evtDelta);
+    const modifiers = {
+      alt:evt.altKey, 
+      ctrl:evt.ctrlKey,
+      meta:evt.metaKey,
+      shift:evt.shiftKey,
+    };
+    callback("wheel", evtPoint, evtPoint2, evtDelta, modifiers);
   }
 
   function onResize(evt) {
@@ -188,7 +194,8 @@ function init() {
     evtType,
     evtPoint,
     evtPoint2 = undefined,
-    evtDelta = undefined
+    evtDelta = undefined,
+    modifiers = undefined,
   ) {
     switch (evtType) {
       case "down":
@@ -254,9 +261,14 @@ function init() {
           start: { x: evtPoint.x, y: evtPoint.y },
           end: { x: evtPoint.x + 1, y: evtPoint.y },
         };
-        console.log(evtPoint, evtDelta);
         let newLine = cloneLine(oldLine);
-        newLine.end.x += evtDelta.y / 1000;
+        if (modifiers && modifiers.ctrl) {
+          newLine.end.x += -1 + Math.cos(evtDelta.y / 1000);
+          newLine.end.y += Math.sin(evtDelta.y / 1000);
+
+        } else {
+          newLine.end.x += evtDelta.y / 1000;
+        }
         let zoomedLine;
         for (const fractalControl of fractalControls) {
           zoomedLine = zoomTransformLine(
