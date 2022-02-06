@@ -1,16 +1,4 @@
-function cloneLine(line) {
-  return {
-    start: { x: line.start.x, y: line.start.y },
-    end: { x: line.end.x, y: line.end.y },
-  };
-}
-
-function mirrorLine(line) {
-  return {
-    start: { x: line.start.x, y: -line.start.y },
-    end: { x: line.end.x, y: -line.end.y },
-  };
-}
+import {cloneLine, mirrorLine} from "./helpers.js"
 
 var Generator = function (
   lines,
