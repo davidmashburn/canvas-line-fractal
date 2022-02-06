@@ -2,11 +2,9 @@ import { zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
 
 import { getDrawFractalIterator } from "./drawFractal.js";
 
-import { Rectangle } from "./shapes.js";
-
 import { FractalControl } from "./fractalControl.js";
 
-import { Koch, Dragon, TwinDragonSkin } from "./exampleGenerators.js";
+import * as exampleGenerators from  "./exampleGenerators.js";
 
 var MouseTouchTracker = function (window, canvas, callback) {
   var canvasIsDragging = false;
@@ -132,25 +130,19 @@ function init() {
     maxDepth: false,
     drawAllLines: false,
   };
-  var fractalControls = [new FractalControl(baseLineData, Koch)];
+  var fractalControls = [new FractalControl(baseLineData, exampleGenerators.Koch)];
   var canvasIsPanning = false;
   var origTwoFingerLine;
   
-  var fractalPresets = {
-    Koch:Koch,
-    Dragon:Dragon,
-    TwinDragonSkin:TwinDragonSkin,
-  };
-
   var presetsDropdown = document.getElementById("ChoosePreset");
   presetsDropdown.options.length = 0;
-  for (const [name, generatorData] of Object.entries(fractalPresets)) {
+  for (const [name, generatorData] of Object.entries(exampleGenerators)) {
     presetsDropdown.options.add(new Option(name, name));
   }
   
   presetsDropdown.onchange = () => {
     const baseLineData = cloneLine(fractalControls[0].baseLine)
-    fractalControls = [new FractalControl(baseLineData, fractalPresets[presetsDropdown.value])];
+    fractalControls = [new FractalControl(baseLineData, exampleGenerators[presetsDropdown.value])];
     refreshDrawFractalIter(true);
   };
   document.getElementById("StartStop").onclick = () => {
