@@ -126,8 +126,7 @@ function init() {
     maxDepth: false,
     drawAllLines: false,
   };
-  var fractalControls = [new FractalControl(baseLineData, Koch, 20)];
-  var fc0 = fractalControls[0];
+  var fractalControls = [new FractalControl(baseLineData, Koch)];
   var canvasIsPanning = false;
   var origTwoFingerLine;
   
@@ -143,6 +142,11 @@ function init() {
     presetsDropdown.options.add(new Option(name, name));
   }
   
+  presetsDropdown.onchange = () => {
+    const baseLineData = cloneLine(fractalControls[0].baseLine)
+    fractalControls = [new FractalControl(baseLineData, fractalPresets[presetsDropdown.value])];
+    refreshDrawFractalIter(true);
+  };
   document.getElementById("StartStop").onclick = () => {
     if (!isDrawingLoop) {
       isDrawingLoop = true;
@@ -172,8 +176,8 @@ function init() {
     }
     drawFractalIterator = getDrawFractalIterator(
       ctx_off,
-      fc0.generator,
-      fc0.baseLine,
+      fractalControls[0].generator,
+      fractalControls[0].baseLine,
       drawingOptions.maxDepth,
       drawingOptions.drawAllLines
     );

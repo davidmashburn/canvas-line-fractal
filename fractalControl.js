@@ -9,8 +9,7 @@ import {
 } from "./shapes.js";
 import { generatorFromData } from "./generator.js";
 
-var FractalControl = function (baseLineData, generatorData, maxDepth = 3) {
-  this.maxDepth = maxDepth;
+var FractalControl = function (baseLineData, generatorData) {
   this.baseStartPoint = new Point(
     baseLineData.start.x,
     baseLineData.start.y,
