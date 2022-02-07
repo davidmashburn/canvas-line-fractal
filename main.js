@@ -172,8 +172,8 @@ function init() {
     refreshDrawFractalIter(true);
   };
 
-  canvas.width = window.innerWidth * 0.75 - 10;
-  canvas.height = window.innerHeight * 0.95 - 10;
+  canvas.width = window.innerWidth;// * 0.75 - 10;
+  canvas.height = window.innerHeight * 0.95;// - 10;
   offScreenCanvas.width = canvas.width;
   offScreenCanvas.height = canvas.height;
 
@@ -286,8 +286,8 @@ function init() {
       case "resize":
         setTimeout(function () {
           console.log(window.innerHeight);
-          canvas.width = window.innerWidth * 0.75 - 10;
-          canvas.height = window.innerHeight * 0.95 - 10;
+          canvas.width = window.innerWidth;// * 0.75 - 10;
+          canvas.height = window.innerHeight * 0.95;// - 10;
           offScreenCanvas.width = canvas.width;
           offScreenCanvas.height = canvas.height;
           refreshDrawFractalIter(true);

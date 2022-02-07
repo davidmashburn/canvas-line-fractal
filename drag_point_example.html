@@ -12,7 +12,7 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
   name="viewport"
   content="width=device-width, initial-scale=1, maximum-scale=1"
 />
-
+<!--viewport-fit=cover"-->
 <html>
   <head>
     <link
@@ -43,17 +43,20 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
         overflow: auto;
       }
       .main {
-        width: 75%;
+        width: 100%;
         height: 100%;
         display: inline-block;
+        position: absolute;
       }
       .left {
         width: 25%;
-        height: 100%;
+        height: 95%;
         float: left;
+        opacity: 1;
+        position: absolute;
       }
       #fractalArea {
-        position: relative;
+        position: absolute;
       }
       #fractalArea > canvas {
         position: absolute;
@@ -75,6 +78,12 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
   <body>
     <div class="header">Line Fractal Generator</div>
     <div class="content">
+      <div class="main">
+        <div id="fractalArea">
+          <canvas id="offScreenCanvas"></canvas>
+          <canvas id="mainCanvas"></canvas>
+        </div>
+      </div>
       <div class="left">
         <label for="Depth">Depth:</label>
         <br />
@@ -127,12 +136,6 @@ http://jsfiddle.net/WolfeSVK/s2tNr/
         <br />
         <select name="ChoosePreset" id="ChoosePreset"></select>
         <br />
-      </div>
-      <div class="main">
-        <div id="fractalArea">
-          <canvas id="offScreenCanvas"></canvas>
-          <canvas id="mainCanvas"></canvas>
-        </div>
       </div>
     </div>
   </body>
