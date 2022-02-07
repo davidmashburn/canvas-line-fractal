@@ -1,41 +1,41 @@
 import {cloneLine, mirrorLine} from "./helpers.js"
 
-var Generator = function (
-  lines,
-  isMirror = false,
-  generators = undefined,
-  mirror = undefined
-) {
-  this.lines = lines.map(cloneLine);
-  this.isMirror = isMirror;
-  this.generators = generators;
-  if (!generators) {
-    this.generators = Array(lines.length).fill(this);
-  }
-  if (mirror) {
-    this.mirror = mirror;
-  } else {
-    let mirroredLines = this.lines.map(mirrorLine);
-    let mirroredGenerators = this.generators.map((g) => g.mirror);
-    this.mirror = new Generator(
-      mirroredLines,
-      !isMirror,
-      mirroredGenerators,
-      this
-    );
-  }
-
-  this.resetMirror = function () {
-    this.mirror.lines = this.lines.map(mirrorLine);
-    this.mirror.isMirror = !this.isMirror;
-    this.mirror.generators = this.generators.map((g) => g.mirror);
-  };
-
-  this.setGenerators = function (generators) {
+class Generator {
+  constructor(lines,
+    isMirror = false,
+    generators = undefined,
+    mirror = undefined) {
+    this.lines = lines.map(cloneLine);
+    this.isMirror = isMirror;
     this.generators = generators;
-    this.mirror.generators = this.generators.map((g) => g.mirror);
-  };
-};
+    if (!generators) {
+      this.generators = Array(lines.length).fill(this);
+    }
+    if (mirror) {
+      this.mirror = mirror;
+    } else {
+      let mirroredLines = this.lines.map(mirrorLine);
+      let mirroredGenerators = this.generators.map((g) => g.mirror);
+      this.mirror = new Generator(
+        mirroredLines,
+        !isMirror,
+        mirroredGenerators,
+        this
+      );
+    }
+
+    this.resetMirror = function () {
+      this.mirror.lines = this.lines.map(mirrorLine);
+      this.mirror.isMirror = !this.isMirror;
+      this.mirror.generators = this.generators.map((g) => g.mirror);
+    };
+
+    this.setGenerators = function (generators) {
+      this.generators = generators;
+      this.mirror.generators = this.generators.map((g) => g.mirror);
+    };
+  }
+}
 
 function generatorFromData(data) {
   const points = data.points.map((point) => {
