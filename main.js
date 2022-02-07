@@ -103,10 +103,14 @@ window.requestAnimFrame = (function (callback) {
   );
 })();
 
-function raw_draw(ctx, offScreenCanvas, fractalControls, hideControls) {
+function raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(offScreenCanvas, 0, 0);
-  if (!hideControls) {
+  for (const fractalControl of fractalControls) {
+      fractalControl.setScale(drawingOptions.largeControls ? 2 : 1)
+    }
+  
+  if (!drawingOptions.hideControls) {
     for (const fractalControl of fractalControls) {
       fractalControl.render(ctx);
     }
@@ -274,11 +278,15 @@ function init() {
         break;
 
       case "resize":
-        canvas.width = window.innerWidth * 0.75 - 10;
-        canvas.height = window.innerHeight * 0.95 - 10;
-        offScreenCanvas.width = canvas.width;
-        offScreenCanvas.height = canvas.height;
-        refreshDrawFractalIter(true);
+        setTimeout(function() {
+          console.log(window.innerHeight);
+          canvas.width = window.innerWidth * 0.75 - 10;
+          canvas.height = window.innerHeight * 0.95 - 10;
+          offScreenCanvas.width = canvas.width;
+          offScreenCanvas.height = canvas.height;
+          refreshDrawFractalIter(true);
+        
+    }, 10); // delay is important!!
         break;
     }
 
@@ -286,13 +294,14 @@ function init() {
       ctx,
       offScreenCanvas,
       fractalControls,
-      drawingOptions.hideControls
+      drawingOptions
     );
   });
 
   var count = 0;
-  function draw(maxDepth, drawAllLines, hideControls) {
+  function draw(maxDepth, drawAllLines, hideControls, largeControls) {
     drawingOptions.hideControls = hideControls;
+    drawingOptions.largeControls = largeControls;
     if (
       drawingOptions.maxDepth != maxDepth ||
       drawingOptions.drawAllLines != drawAllLines
@@ -312,11 +321,11 @@ function init() {
       ctx,
       offScreenCanvas,
       fractalControls,
-      drawingOptions.hideControls
+      drawingOptions
     );
   }
 
-  raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions.hideControls);
+  raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
 
   return draw;
 }
@@ -330,6 +339,7 @@ function loop() {
   let maxDepth = document.getElementById("Depth").value;
   let drawAllLines = document.getElementById("DrawAllLines").checked;
   let hideControls = document.getElementById("HideControls").checked;
+  let largeControls = document.getElementById("LargeControls").checked;
 
   if (!refreshRate) {
     refreshRate = 1;
@@ -343,7 +353,7 @@ function loop() {
     if (!isDrawingLoop) {
       break;
     }
-    draw(maxDepth, drawAllLines, hideControls);
+    draw(maxDepth, drawAllLines, hideControls, largeControls);
   }
   if (isDrawingLoop) {
     requestAnimFrame(loop);

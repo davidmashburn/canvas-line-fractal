@@ -87,10 +87,11 @@ var Arc = function (
   };
 };
 
-var Point = function (x, y, color = "red") {
+var Point = function (x, y, color = "red", radius = POINT_RADIUS, lineWidth = LINE_WIDTH) {
   this.x = x;
   this.y = y;
-  this.radius = POINT_RADIUS;
+  this.radius = radius;
+  this.lineWidth = LINE_WIDTH;
   this.radians = Math.PI * 2;
   this.color = color;
   this.strokeColor = "black";
@@ -105,7 +106,7 @@ var Point = function (x, y, color = "red") {
     ctx.fill();
     if (this.strokeColor) {
       ctx.strokeStyle = this.strokeColor;
-      ctx.lineWidth = LINE_WIDTH;
+      ctx.lineWidth = this.lineWidth;
       ctx.stroke();
     }
 
@@ -124,13 +125,19 @@ var ArrowLine = function (
   end,
   externalStartPointIndex,
   externalEndPointIndex,
-  mirrored = false
+  mirrored = false,
+  pointRadius = POINT_RADIUS,
+  arrowLength = ARROW_LENGTH,
+  lineWidth = LINE_WIDTH
 ) {
   this.start = start;
   this.end = end;
   this.externalStartPointIndex = externalStartPointIndex;
   this.externalEndPointIndex = externalEndPointIndex;
   this.mirrored = mirrored;
+  this.pointRadius = pointRadius;
+  this.arrowLength = arrowLength;
+  this.lineWidth = lineWidth;
 
   this.trianglePath = undefined;
   this.lineAreaPath = undefined;
@@ -150,13 +157,13 @@ var ArrowLine = function (
     if (this.arrowEnabled) {
       //check the line to see if it's long enough to have an arrow
       //exit the function early if it's too short
-      if (ARROW_LENGTH <= lineLength - 1 - 2 * POINT_RADIUS) {
+      if (this.arrowLength <= lineLength - 1 - 2 * this.pointRadius) {
         //if line is long enough to fit the arrow
 
         //set up arrow on the unit line
-        let xTip = (lineLength - POINT_RADIUS) / lineLength;
-        let xBack = (lineLength - POINT_RADIUS - ARROW_LENGTH) / lineLength;
-        let yExtend = ((this.mirrored ? 1 : -1) * ARROW_LENGTH) / lineLength;
+        let xTip = (lineLength - this.pointRadius) / lineLength;
+        let xBack = (lineLength - this.pointRadius - this.arrowLength) / lineLength;
+        let yExtend = ((this.mirrored ? 1 : -1) * this.arrowLength) / lineLength;
 
         let trianglePoints = [
           { x: xTip, y: 0 },
@@ -172,7 +179,7 @@ var ArrowLine = function (
     }
     //update the lineAreaPath used in isLineHit
     if (start.x != end.x || start.y != end.y) {
-      let radius = POINT_RADIUS / lineLength;
+      let radius = this.pointRadius / lineLength;
       let lineAreaPoints = [
         { x: 0, y: radius },
         { x: 0, y: -radius },
@@ -191,7 +198,7 @@ var ArrowLine = function (
     //draw line
     ctx.beginPath();
     ctx.strokeStyle = this.color;
-    ctx.lineWidth = LINE_WIDTH;
+    ctx.lineWidth = this.lineWidth;
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
     ctx.stroke();
