@@ -87,7 +87,13 @@ var Arc = function (
   };
 };
 
-var Point = function (x, y, color = "red", radius = POINT_RADIUS, lineWidth = LINE_WIDTH) {
+var Point = function (
+  x,
+  y,
+  color = "red",
+  radius = POINT_RADIUS,
+  lineWidth = LINE_WIDTH
+) {
   this.x = x;
   this.y = y;
   this.radius = radius;
@@ -162,8 +168,10 @@ var ArrowLine = function (
 
         //set up arrow on the unit line
         let xTip = (lineLength - this.pointRadius) / lineLength;
-        let xBack = (lineLength - this.pointRadius - this.arrowLength) / lineLength;
-        let yExtend = ((this.mirrored ? 1 : -1) * this.arrowLength) / lineLength;
+        let xBack =
+          (lineLength - this.pointRadius - this.arrowLength) / lineLength;
+        let yExtend =
+          ((this.mirrored ? 1 : -1) * this.arrowLength) / lineLength;
 
         let trianglePoints = [
           { x: xTip, y: 0 },

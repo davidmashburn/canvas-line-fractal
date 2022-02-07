@@ -37,20 +37,21 @@ var FractalControl = function (baseLineData, generatorData) {
     const pointRadius = POINT_RADIUS * scale;
     const lineWidth = LINE_WIDTH * scale;
     const arrowLength = ARROW_LENGTH * scale;
-    const allPoints = [this.baseStartPoint, this.baseEndPoint].concat(this.points)
+    const allPoints = [this.baseStartPoint, this.baseEndPoint].concat(
+      this.points
+    );
     const allLines = [this.baseLine].concat(this.lines);
-    for ( const point of allPoints ) {
+    for (const point of allPoints) {
       point.radius = pointRadius;
       point.lineWidth = lineWidth;
     }
-    for ( const line of allLines ) {
+    for (const line of allLines) {
       line.pointRadius = pointRadius;
       line.lineWidth = lineWidth;
       line.arrowLength = arrowLength;
     }
-  }
-  
-  
+  };
+
   this.render = (ctx) => {
     this.baseLine.render(ctx);
     for (const line of this.lines.concat([this.baseLine])) {

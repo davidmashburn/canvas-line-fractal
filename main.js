@@ -4,7 +4,7 @@ import { getDrawFractalIterator } from "./drawFractal.js";
 
 import { FractalControl } from "./fractalControl.js";
 
-import * as exampleGenerators from  "./exampleGenerators.js";
+import * as exampleGenerators from "./exampleGenerators.js";
 
 var MouseTouchTracker = function (window, canvas, callback) {
   var canvasIsDragging = false;
@@ -63,10 +63,10 @@ var MouseTouchTracker = function (window, canvas, callback) {
     const evtPoint2 = undefined;
     const evtDelta = { x: evt.deltaX, y: evt.deltaY };
     const modifiers = {
-      alt:evt.altKey, 
-      ctrl:evt.ctrlKey,
-      meta:evt.metaKey,
-      shift:evt.shiftKey,
+      alt: evt.altKey,
+      ctrl: evt.ctrlKey,
+      meta: evt.metaKey,
+      shift: evt.shiftKey,
     };
     callback("wheel", evtPoint, evtPoint2, evtDelta, modifiers);
   }
@@ -107,9 +107,9 @@ function raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(offScreenCanvas, 0, 0);
   for (const fractalControl of fractalControls) {
-      fractalControl.setScale(drawingOptions.largeControls ? 2 : 1)
-    }
-  
+    fractalControl.setScale(drawingOptions.largeControls ? 2 : 1);
+  }
+
   if (!drawingOptions.hideControls) {
     for (const fractalControl of fractalControls) {
       fractalControl.render(ctx);
@@ -134,19 +134,26 @@ function init() {
     maxDepth: false,
     drawAllLines: false,
   };
-  var fractalControls = [new FractalControl(baseLineData, exampleGenerators.Koch)];
+  var fractalControls = [
+    new FractalControl(baseLineData, exampleGenerators.Koch),
+  ];
   var canvasIsPanning = false;
   var origTwoFingerLine;
-  
+
   var presetsDropdown = document.getElementById("ChoosePreset");
   presetsDropdown.options.length = 0;
-  for (const [name, generatorData] of Object.entries(exampleGenerators)) {
+  for (const name of Object.keys(exampleGenerators)) {
     presetsDropdown.options.add(new Option(name, name));
   }
-  
+
   presetsDropdown.onchange = () => {
-    const baseLineData = cloneLine(fractalControls[0].baseLine)
-    fractalControls = [new FractalControl(baseLineData, exampleGenerators[presetsDropdown.value])];
+    const baseLineData = cloneLine(fractalControls[0].baseLine);
+    fractalControls = [
+      new FractalControl(
+        baseLineData,
+        exampleGenerators[presetsDropdown.value]
+      ),
+    ];
     refreshDrawFractalIter(true);
   };
   document.getElementById("StartStop").onclick = () => {
@@ -159,7 +166,7 @@ function init() {
   };
 
   document.getElementById("ResetZoom").onclick = () => {
-    for(const fractalControl of fractalControls) {
+    for (const fractalControl of fractalControls) {
       fractalControl.setBaseLine(baseLineData);
     }
     refreshDrawFractalIter(true);
@@ -191,7 +198,7 @@ function init() {
     evtPoint,
     evtPoint2 = undefined,
     evtDelta = undefined,
-    modifiers = undefined,
+    modifiers = undefined
   ) {
     switch (evtType) {
       case "down":
@@ -261,7 +268,6 @@ function init() {
         if (modifiers && modifiers.ctrl) {
           newLine.end.x += -1 + Math.cos(evtDelta.y / 1000);
           newLine.end.y += Math.sin(evtDelta.y / 1000);
-
         } else {
           newLine.end.x += evtDelta.y / 1000;
         }
@@ -278,24 +284,18 @@ function init() {
         break;
 
       case "resize":
-        setTimeout(function() {
+        setTimeout(function () {
           console.log(window.innerHeight);
           canvas.width = window.innerWidth * 0.75 - 10;
           canvas.height = window.innerHeight * 0.95 - 10;
           offScreenCanvas.width = canvas.width;
           offScreenCanvas.height = canvas.height;
           refreshDrawFractalIter(true);
-        
-    }, 10); // delay is important!!
+        }, 10); // delay is important!!
         break;
     }
 
-    raw_draw(
-      ctx,
-      offScreenCanvas,
-      fractalControls,
-      drawingOptions
-    );
+    raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
   });
 
   var count = 0;
@@ -317,12 +317,7 @@ function init() {
     }
 
     count++;
-    raw_draw(
-      ctx,
-      offScreenCanvas,
-      fractalControls,
-      drawingOptions
-    );
+    raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
   }
 
   raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
