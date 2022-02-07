@@ -127,8 +127,8 @@ function init() {
   var startPoint = { x: 0, y: 0 };
 
   let baseLineData = {
-    start: { x: 50, y: 220 },
-    end: { x: 400, y: 220 },
+    start: { x: 250, y: 250 },
+    end: { x: 600, y: 250 },
   };
   var drawingOptions = {
     maxDepth: false,
@@ -142,9 +142,11 @@ function init() {
 
   var presetsDropdown = document.getElementById("ChoosePreset");
   presetsDropdown.options.length = 0;
-  for (const name of Object.keys(exampleGenerators)) {
+  const presetNames = Object.keys(exampleGenerators)
+  for (const name of presetNames) {
     presetsDropdown.options.add(new Option(name, name));
   }
+  presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
 
   presetsDropdown.onchange = () => {
     const baseLineData = cloneLine(fractalControls[0].baseLine);
