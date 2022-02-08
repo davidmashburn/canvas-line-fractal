@@ -38,6 +38,10 @@ body {
   opacity: 1;
   position: absolute;
   margin-top: 35px;
+  pointer-events:none;
+}
+.left * {
+  pointer-events:auto;
 }
 #fractalArea {
   position: absolute;
