@@ -4,7 +4,7 @@ import { getDrawFractalIterator } from "./drawFractal.js";
 
 import { FractalControl } from "./fractalControl.js";
 
-import { MouseTouchTracker } from "./mouseTouchTracker.js";
+import { registerPointerEvents } from "./pointerEventHandler.js";
 
 import * as exampleGenerators from "./exampleGenerators.js";
 
@@ -67,41 +67,41 @@ function init() {
   var origTwoFingerLine;
   var drawFractalIterator;
 
-  var presetsDropdown = document.getElementById("ChoosePreset");
-  presetsDropdown.options.length = 0;
-  const presetNames = Object.keys(exampleGenerators);
-  for (const name of presetNames) {
-    presetsDropdown.options.add(new Option(name, name));
+  function setupLeftPane() {
+    var presetsDropdown = document.getElementById("ChoosePreset");
+    presetsDropdown.options.length = 0;
+    const presetNames = Object.keys(exampleGenerators);
+    for (const name of presetNames) {
+      presetsDropdown.options.add(new Option(name, name));
+    }
+    presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
+
+    presetsDropdown.onchange = () => {
+      const baseLineData = cloneLine(fractalControls[0].baseLine);
+      fractalControls = [
+        new FractalControl(
+          baseLineData,
+          exampleGenerators[presetsDropdown.value]
+        ),
+      ];
+      refreshDrawFractalIter(true);
+    };
+    document.getElementById("StartStop").onclick = () => {
+      if (!isDrawingLoop) {
+        isDrawingLoop = true;
+        loop();
+      } else {
+        isDrawingLoop = false;
+      }
+    };
+
+    document.getElementById("ResetZoom").onclick = () => {
+      for (const fractalControl of fractalControls) {
+        fractalControl.setBaseLine(baseLineData);
+      }
+      refreshDrawFractalIter(true);
+    };
   }
-  presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
-
-  presetsDropdown.onchange = () => {
-    const baseLineData = cloneLine(fractalControls[0].baseLine);
-    fractalControls = [
-      new FractalControl(
-        baseLineData,
-        exampleGenerators[presetsDropdown.value]
-      ),
-    ];
-    refreshDrawFractalIter(true);
-  };
-  document.getElementById("StartStop").onclick = () => {
-    if (!isDrawingLoop) {
-      isDrawingLoop = true;
-      loop();
-    } else {
-      isDrawingLoop = false;
-    }
-  };
-
-  document.getElementById("ResetZoom").onclick = () => {
-    for (const fractalControl of fractalControls) {
-      fractalControl.setBaseLine(baseLineData);
-    }
-    refreshDrawFractalIter(true);
-  };
-
-  resetCanvasSize(canvas, offScreenCanvas);
 
   function refreshDrawFractalIter(clear_ctx_off = false) {
     if (clear_ctx_off) {
@@ -115,9 +115,8 @@ function init() {
       drawingOptions.drawAllLines
     );
   }
-  refreshDrawFractalIter();
 
-  var mtt = new MouseTouchTracker(window, canvas, function (
+  function pointerCallback(
     evtType,
     evtPoint,
     evtPoint2 = undefined,
@@ -216,7 +215,7 @@ function init() {
     }
 
     raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
-  });
+  };
 
   function draw(maxDepth, drawAllLines, hideControls, largeControls) {
     drawingOptions.hideControls = hideControls;
@@ -238,6 +237,10 @@ function init() {
     raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
   }
 
+  setupLeftPane();
+  resetCanvasSize(canvas, offScreenCanvas);
+  refreshDrawFractalIter();
+  registerPointerEvents(window, canvas, pointerCallback);
   raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
 
   return draw;

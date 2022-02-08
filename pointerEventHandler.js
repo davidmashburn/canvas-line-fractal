@@ -28,7 +28,7 @@ function getEventCoordinates(canvas, evt) {
   }
 }
 
-var MouseTouchTracker = function (window, canvas, callback) {
+function registerPointerEvents(window, canvas, callback) {
   var isDragging = false;
 
   function onDown(evt) {
@@ -88,4 +88,4 @@ var MouseTouchTracker = function (window, canvas, callback) {
   window.onwheel = onWheel;
 };
 
-export { MouseTouchTracker };
+export { registerPointerEvents };
