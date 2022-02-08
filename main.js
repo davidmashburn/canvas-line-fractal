@@ -4,90 +4,17 @@ import { getDrawFractalIterator } from "./drawFractal.js";
 
 import { FractalControl } from "./fractalControl.js";
 
+import { MouseTouchTracker } from "./mouseTouchTracker.js";
+
 import * as exampleGenerators from "./exampleGenerators.js";
 
-var MouseTouchTracker = function (window, canvas, callback) {
-  var canvasIsDragging = false;
-
-  function processEvent(evt) {
-    var rect = canvas.getBoundingClientRect();
-    var offsetTop = rect.top;
-    var offsetLeft = rect.left;
-
-    if (evt.touches) {
-      return {
-        x: evt.touches[0].clientX - offsetLeft,
-        y: evt.touches[0].clientY - offsetTop,
-      };
-    } else {
-      return {
-        x: evt.clientX - offsetLeft,
-        y: evt.clientY - offsetTop,
-      };
-    }
-  }
-
-  function onDown(evt) {
-    canvasIsDragging = true;
-    evt.preventDefault();
-    var coords = processEvent(evt);
-    callback("down", coords);
-  }
-
-  function onUp(evt) {
-    if (canvasIsDragging) {
-      evt.preventDefault();
-      callback("up");
-      canvasIsDragging = false;
-    }
-  }
-
-  function onMove(evt) {
-    if (canvasIsDragging) {
-      evt.preventDefault();
-      let evtPoint = processEvent(evt);
-      if (evt.touches && evt.touches[1]) {
-        let evtPoint2 = {
-          x: evtPoint.x + evt.touches[1].clientX - evt.touches[0].clientX,
-          y: evtPoint.y + evt.touches[1].clientY - evt.touches[0].clientY,
-        };
-        callback("two-finger", evtPoint, evtPoint2);
-      } else {
-        callback("move", evtPoint);
-      }
-    }
-  }
-
-  function onWheel(evt) {
-    const evtPoint = processEvent(evt);
-    const evtPoint2 = undefined;
-    const evtDelta = { x: evt.deltaX, y: evt.deltaY };
-    const modifiers = {
-      alt: evt.altKey,
-      ctrl: evt.ctrlKey,
-      meta: evt.metaKey,
-      shift: evt.shiftKey,
-    };
-    callback("wheel", evtPoint, evtPoint2, evtDelta, modifiers);
-  }
-
-  function onResize(evt) {
-    callback("resize", window.innerWidth, window.innerHeight);
-  }
-
-  window.onresize = onResize;
-
-  window.ontouchmove = onMove;
-  window.onmousemove = onMove;
-
-  canvas.ontouchstart = onDown;
-  canvas.onmousedown = onDown;
-
-  window.ontouchend = onUp;
-  window.onmouseup = onUp;
-
-  window.onwheel = onWheel;
-};
+function resetCanvasSize(canvas, offScreenCanvas) {
+  const titleHeight = document.getElementsByClassName("header")[0].offsetHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - titleHeight;
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
+}
 
 // Compatibility animation loop
 window.requestAnimFrame = (function (callback) {
@@ -142,7 +69,7 @@ function init() {
 
   var presetsDropdown = document.getElementById("ChoosePreset");
   presetsDropdown.options.length = 0;
-  const presetNames = Object.keys(exampleGenerators)
+  const presetNames = Object.keys(exampleGenerators);
   for (const name of presetNames) {
     presetsDropdown.options.add(new Option(name, name));
   }
@@ -174,10 +101,7 @@ function init() {
     refreshDrawFractalIter(true);
   };
 
-  canvas.width = window.innerWidth;// * 0.75 - 10;
-  canvas.height = window.innerHeight * 0.95;// - 10;
-  offScreenCanvas.width = canvas.width;
-  offScreenCanvas.height = canvas.height;
+  resetCanvasSize(canvas, offScreenCanvas);
 
   var drawFractalIterator;
 
@@ -286,12 +210,8 @@ function init() {
         break;
 
       case "resize":
-        setTimeout(function () {
-          console.log(window.innerHeight);
-          canvas.width = window.innerWidth;// * 0.75 - 10;
-          canvas.height = window.innerHeight * 0.95;// - 10;
-          offScreenCanvas.width = canvas.width;
-          offScreenCanvas.height = canvas.height;
+        setTimeout(() => {
+          resetCanvasSize(canvas, offScreenCanvas);
           refreshDrawFractalIter(true);
         }, 10); // delay is important!!
         break;

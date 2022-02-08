@@ -11,6 +11,7 @@ body {
   height: 35px;
   text-align: center;
   font-size: 200%;
+  position: absolute;
 }
 .content {
   width: 100%;
@@ -19,6 +20,7 @@ body {
 .main,
 .left {
   overflow: auto;
+  position: absolute;
 }
 .main {
   width: 100%;
@@ -28,16 +30,23 @@ body {
 }
 .left {
   width: 170px;
-  height: 100%;
+  bottom:0;
+  top:0;
+  left:0;
+  right:0;
   float: left;
   opacity: 1;
   position: absolute;
+  margin-top: 35px;
 }
 #fractalArea {
   position: absolute;
+  margin-top: 35px;
 }
 #fractalArea > canvas {
   position: absolute;
-  left: 0;
-  top: 0;
+  bottom:0;
+  top:0;
+  left:0;
+  right:0;
 }
