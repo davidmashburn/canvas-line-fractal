@@ -7,7 +7,7 @@ function getEventCoordinates(canvas, evt) {
   var offsetLeft = rect.left;
 
   if (evt.touches) {
-    return evt.touches.map((t) => {
+    return Object.values(evt.touches).map((t) => {
       return {
         x: t.clientX - offsetLeft,
         y: t.clientY - offsetTop,
