@@ -1,5 +1,7 @@
 import { zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
 
+import { getPointsFromGenerator } from "./generator.js";
+
 import { getDrawFractalIterator } from "./drawFractal.js";
 
 import { FractalControl } from "./fractalControl.js";
@@ -100,6 +102,23 @@ function init() {
         fractalControl.setBaseLine(baseLineData);
       }
       refreshDrawFractalIter(true);
+    };
+    document.getElementById("LogGenerator").onclick = () => {
+      for (const fractalControl of fractalControls) {
+        const linePointIndexes = fractalControl.lines.map((line) => {
+          return {
+            start: line.externalStartPointIndex,
+            end: line.externalEndPointIndex,
+          };
+        });
+        const pointData = getPointsFromGenerator(fractalControl.generator, linePointIndexes).map((p) => [p.x, -p.y]);
+        const lineData = fractalControl.lines.map((line) => [
+          line.externalStartPointIndex,
+          line.externalEndPointIndex,
+          line.mirrored,
+        ]);
+        console.log({points:pointData, lines:lineData});
+      }
     };
   }
 

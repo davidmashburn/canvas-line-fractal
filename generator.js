@@ -52,4 +52,16 @@ function generatorFromData(data) {
   return generator;
 }
 
-export { Generator, generatorFromData };
+function getPointsFromGenerator(generator, linePointIndexes) {
+  const maxIndex = Math.max(...linePointIndexes.map((i) => Math.max(i.start, i.end)));
+  const newPointArrays = [...Array(maxIndex + 1).keys()].map(x =>[]);  // make array of empty arrays
+  for (const [i, line] of generator.lines.entries()) {
+    const pointIndexes = linePointIndexes[i];
+    newPointArrays[pointIndexes.start].push(line.start);
+    newPointArrays[pointIndexes.end].push(line.end);
+  }
+  const newPoints = newPointArrays.map((pointArray) => pointArray[0]);
+  return newPoints;
+}
+
+export { Generator, generatorFromData, getPointsFromGenerator };

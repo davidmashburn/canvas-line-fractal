@@ -9,7 +9,7 @@ import {
   generatePointsAndArrowLinesFromGeneratorData,
   Point,
 } from "./shapes.js";
-import { generatorFromData } from "./generator.js";
+import { generatorFromData, getPointsFromGenerator } from "./generator.js";
 
 class FractalControl {
   constructor(baseLineData, generatorData) {
@@ -98,18 +98,12 @@ class FractalControl {
     };
     this.updatePointValuesFromGenerator = (generator) => {
       const linePointIndexes = this.lines.map((line) => {
-        return {
-          start: line.externalStartPointIndex,
-          end: line.externalEndPointIndex,
-        };
-      });
-      const newPointArrays = this.points.map((point) => []);
-      for (const [i, line] of this.generator.lines.entries()) {
-        const pointIndexes = linePointIndexes[i];
-        newPointArrays[pointIndexes.start].push(line.start);
-        newPointArrays[pointIndexes.end].push(line.end);
-      }
-      const newPoints = newPointArrays.map((pointArray) => pointArray[0]);
+    return {
+      start: line.externalStartPointIndex,
+      end: line.externalEndPointIndex,
+    };
+  });
+      const newPoints = getPointsFromGenerator(generator, linePointIndexes);
 
       for (const [i, point] of this.points.entries()) {
         const newPoint = transformPoint(newPoints[i], this.baseLine);

@@ -66,6 +66,19 @@ const TwinDragonSkin = {
   ],
 };
 
+const SierpinskiTriangleL = {
+  points: [
+    [1 / 2, -sq3 / 8],
+    [1 / 4, sq3 / 8],
+    [3 / 4, sq3 / 8],
+  ],
+  lines: [
+    [0, 1, false],
+    [1, 2, false],
+    [2, 0, false],
+  ],
+};
+
 const SierpinskiTriangle = {
   points: [
     [0, 0],
@@ -151,6 +164,7 @@ export {
   Dragon,
   TwinDragonSkin,
   SierpinskiTriangle,
+  SierpinskiTriangleL,
   SierpinskiCarpet,
   MonkeysTree,
   BinaryTree
