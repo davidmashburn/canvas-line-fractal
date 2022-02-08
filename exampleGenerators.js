@@ -100,6 +100,50 @@ const SierpinskiCarpet = {
   ],
 };
 
+var MonkeysTree = {
+  points: [
+    [0,0],
+    [1/6,sq3/6],
+    [1/3,sq3/3],
+    [2/3,sq3/3],
+    [5/6,sq3/6],
+    [2/3,2*sq3/9],
+    [0.5,5*sq3/18],
+    [1/3,2*sq3/9],
+    [1/3,sq3/9],
+    [1/3,0],
+    [2/3,0],
+    [1,0],
+   ],
+  lines: [
+    [0,1,true],
+    [2,1,true],
+    [2,3,false],
+    [4,3,true],
+    [5,4,true],
+    [5,6,true],
+    [7,6,false],
+    [8,7,false],
+    [8,9,false],
+    [10,9,false],
+    [11,10,false],
+  ],
+};
+
+var BinaryTree = {
+  points: [
+    [0,0],
+    [1,0],
+    [1.5, sq3 / 6],
+    [1.5, -sq3 / 6],
+  ],
+  lines: [
+    [0, 1, false],
+    [1, 2, false],
+    [1, 3, false],
+ ],
+};
+
 export {
   SampleFractal,
   SampleFractal2,
@@ -108,4 +152,6 @@ export {
   TwinDragonSkin,
   SierpinskiTriangle,
   SierpinskiCarpet,
+  MonkeysTree,
+  BinaryTree
 };
