@@ -1,5 +1,10 @@
-// passes cleaned events down to the callback function
-// including the type of the event and the
+/* Passes cleaned events down to the actual callback function
+including the type of the event and all relevant coordinates
+in "canvas" local coordinates.
+
+Manages one piece of state internally "isDragging" which controls
+whether up or move events are passed to the callback or ignored.
+*/
 
 function getEventCoordinates(canvas, evt) {
   var rect = canvas.getBoundingClientRect();
@@ -24,24 +29,24 @@ function getEventCoordinates(canvas, evt) {
 }
 
 var MouseTouchTracker = function (window, canvas, callback) {
-  var canvasIsDragging = false;
+  var isDragging = false;
 
   function onDown(evt) {
-    canvasIsDragging = true;
+    isDragging = true;
     evt.preventDefault();
     callback("down", getEventCoordinates(canvas, evt)[0]);
   }
 
   function onUp(evt) {
-    if (canvasIsDragging) {
+    if (isDragging) {
       evt.preventDefault();
       callback("up");
-      canvasIsDragging = false;
+      isDragging = false;
     }
   }
 
   function onMove(evt) {
-    if (canvasIsDragging) {
+    if (isDragging) {
       evt.preventDefault();
       const evtCoordinates = getEventCoordinates(canvas, evt);
       if (evtCoordinates[1]) {

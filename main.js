@@ -52,8 +52,7 @@ function init() {
   var ctx = canvas.getContext("2d");
   var ctx_off = offScreenCanvas.getContext("2d");
   var startPoint = { x: 0, y: 0 };
-
-  let baseLineData = {
+  var baseLineData = {
     start: { x: 250, y: 250 },
     end: { x: 600, y: 250 },
   };
@@ -66,6 +65,7 @@ function init() {
   ];
   var canvasIsPanning = false;
   var origTwoFingerLine;
+  var drawFractalIterator;
 
   var presetsDropdown = document.getElementById("ChoosePreset");
   presetsDropdown.options.length = 0;
@@ -102,8 +102,6 @@ function init() {
   };
 
   resetCanvasSize(canvas, offScreenCanvas);
-
-  var drawFractalIterator;
 
   function refreshDrawFractalIter(clear_ctx_off = false) {
     if (clear_ctx_off) {
@@ -220,7 +218,6 @@ function init() {
     raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
   });
 
-  var count = 0;
   function draw(maxDepth, drawAllLines, hideControls, largeControls) {
     drawingOptions.hideControls = hideControls;
     drawingOptions.largeControls = largeControls;
@@ -238,7 +235,6 @@ function init() {
       }
     }
 
-    count++;
     raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
   }
 
