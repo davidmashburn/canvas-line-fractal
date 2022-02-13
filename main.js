@@ -49,25 +49,25 @@ function raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions) {
 var isDrawingLoop = true;
 
 function init() {
-  var canvas = document.getElementById("mainCanvas");
-  var offScreenCanvas = document.getElementById("offScreenCanvas");
-  var ctx = canvas.getContext("2d");
-  var ctx_off = offScreenCanvas.getContext("2d");
+  var this_canvas = document.getElementById("mainCanvas");
+  var this_offScreenCanvas = document.getElementById("offScreenCanvas");
+  var this_ctx = this_canvas.getContext("2d");
+  var this_ctx_off = this_offScreenCanvas.getContext("2d");
   var startPoint = { x: 0, y: 0 };
   var baseLineData = {
     start: { x: 250, y: 250 },
     end: { x: 600, y: 250 },
   };
-  var drawingOptions = {
+  var this_drawingOptions = {
     maxDepth: false,
     drawAllLines: false,
   };
-  var fractalControls = [
+  var this_fractalControls = [
     new FractalControl(baseLineData, exampleGenerators.Koch),
   ];
-  var canvasIsPanning = false;
-  var origTwoFingerLine;
-  var drawFractalIterator;
+  var this_canvasIsPanning = false;
+  var this_origTwoFingerLine;
+  var this_drawFractalIterator;
 
   function setupLeftPane() {
     var presetsDropdown = document.getElementById("ChoosePreset");
@@ -79,8 +79,8 @@ function init() {
     presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
 
     presetsDropdown.onchange = () => {
-      const baseLineData = cloneLine(fractalControls[0].baseLine);
-      fractalControls = [
+      const baseLineData = cloneLine(this_fractalControls[0].baseLine);
+      this_fractalControls = [
         new FractalControl(
           baseLineData,
           exampleGenerators[presetsDropdown.value]
@@ -98,13 +98,13 @@ function init() {
     };
 
     document.getElementById("ResetZoom").onclick = () => {
-      for (const fractalControl of fractalControls) {
+      for (const fractalControl of this_fractalControls) {
         fractalControl.setBaseLine(baseLineData);
       }
       refreshDrawFractalIter(true);
     };
     document.getElementById("LogGenerator").onclick = () => {
-      for (const fractalControl of fractalControls) {
+      for (const fractalControl of this_fractalControls) {
         const linePointIndexes = fractalControl.lines.map((line) => {
           return {
             start: line.externalStartPointIndex,
@@ -124,14 +124,14 @@ function init() {
 
   function refreshDrawFractalIter(clear_ctx_off = false) {
     if (clear_ctx_off) {
-      ctx_off.clearRect(0, 0, ctx_off.canvas.width, ctx_off.canvas.height);
+      this_ctx_off.clearRect(0, 0, this_ctx_off.canvas.width, this_ctx_off.canvas.height);
     }
-    drawFractalIterator = getDrawFractalIterator(
-      ctx_off,
-      fractalControls[0].generator,
-      fractalControls[0].baseLine,
-      drawingOptions.maxDepth,
-      drawingOptions.drawAllLines
+    this_drawFractalIterator = getDrawFractalIterator(
+      this_ctx_off,
+      this_fractalControls[0].generator,
+      this_fractalControls[0].baseLine,
+      this_drawingOptions.maxDepth,
+      this_drawingOptions.drawAllLines
     );
   }
 
@@ -145,22 +145,22 @@ function init() {
     switch (evtType) {
       case "down":
         startPoint = clonePoint(evtPoint);
-        canvasIsPanning = true;
+        this_canvasIsPanning = true;
 
-        for (const fractalControl of fractalControls) {
-          if (fractalControl.onDown(ctx, evtPoint)) {
-            canvasIsPanning = false;
+        for (const fractalControl of this_fractalControls) {
+          if (fractalControl.onDown(this_ctx, evtPoint)) {
+            this_canvasIsPanning = false;
             break;
           }
         }
         break;
 
       case "up":
-        for (const fractalControl of fractalControls) {
+        for (const fractalControl of this_fractalControls) {
           fractalControl.onUp();
         }
-        canvasIsPanning = false;
-        origTwoFingerLine = undefined;
+        this_canvasIsPanning = false;
+        this_origTwoFingerLine = undefined;
         break;
 
       case "move":
@@ -170,30 +170,30 @@ function init() {
         };
         startPoint = clonePoint(evtPoint);
 
-        for (const fractalControl of fractalControls) {
+        for (const fractalControl of this_fractalControls) {
           fractalControl.onMove(evtPoint, delta);
         }
-        if (canvasIsPanning) {
-          for (const fractalControl of fractalControls) {
+        if (this_canvasIsPanning) {
+          for (const fractalControl of this_fractalControls) {
             fractalControl.translateAll(delta);
           }
         }
         refreshDrawFractalIter(true);
         break;
       case "two-finger":
-        if (canvasIsPanning) {
-          canvasIsPanning = false;
-          origTwoFingerLine = { start: evtPoint, end: evtPoint2 };
-          for (const fractalControl of fractalControls) {
+        if (this_canvasIsPanning) {
+          this_canvasIsPanning = false;
+          this_origTwoFingerLine = { start: evtPoint, end: evtPoint2 };
+          for (const fractalControl of this_fractalControls) {
             fractalControl.origBaseLine = cloneLine(fractalControl.baseLine);
           }
-        } else if (origTwoFingerLine) {
+        } else if (this_origTwoFingerLine) {
           let newTwoFingerLine = { start: evtPoint, end: evtPoint2 };
           let zoomedLine;
-          for (const fractalControl of fractalControls) {
+          for (const fractalControl of this_fractalControls) {
             zoomedLine = zoomTransformLine(
               fractalControl.origBaseLine,
-              origTwoFingerLine,
+              this_origTwoFingerLine,
               newTwoFingerLine
             );
             fractalControl.setBaseLine(zoomedLine);
@@ -214,7 +214,7 @@ function init() {
           newLine.end.x += evtDelta.y / 1000;
         }
         let zoomedLine;
-        for (const fractalControl of fractalControls) {
+        for (const fractalControl of this_fractalControls) {
           zoomedLine = zoomTransformLine(
             fractalControl.baseLine,
             oldLine,
@@ -227,40 +227,40 @@ function init() {
 
       case "resize":
         setTimeout(() => {
-          resetCanvasSize(canvas, offScreenCanvas);
+          resetCanvasSize(this_canvas, this_offScreenCanvas);
           refreshDrawFractalIter(true);
         }, 10); // delay is important!!
         break;
     }
 
-    raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
+    raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
   };
 
   function draw(maxDepth, drawAllLines, hideControls, largeControls) {
-    drawingOptions.hideControls = hideControls;
-    drawingOptions.largeControls = largeControls;
+    this_drawingOptions.hideControls = hideControls;
+    this_drawingOptions.largeControls = largeControls;
     if (
-      drawingOptions.maxDepth != maxDepth ||
-      drawingOptions.drawAllLines != drawAllLines
+      this_drawingOptions.maxDepth != maxDepth ||
+      this_drawingOptions.drawAllLines != drawAllLines
     ) {
-      drawingOptions.maxDepth = maxDepth;
-      drawingOptions.drawAllLines = drawAllLines;
+      this_drawingOptions.maxDepth = maxDepth;
+      this_drawingOptions.drawAllLines = drawAllLines;
       refreshDrawFractalIter(true);
     }
     for (let i = 0; i < 100; i++) {
-      if (drawFractalIterator.next().done) {
+      if (this_drawFractalIterator.next().done) {
         refreshDrawFractalIter();
       }
     }
 
-    raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
+    raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
   }
 
   setupLeftPane();
-  resetCanvasSize(canvas, offScreenCanvas);
+  resetCanvasSize(this_canvas, this_offScreenCanvas);
   refreshDrawFractalIter();
-  registerPointerEvents(window, canvas, pointerCallback);
-  raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions);
+  registerPointerEvents(window, this_canvas, pointerCallback);
+  raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
 
   return draw;
 }

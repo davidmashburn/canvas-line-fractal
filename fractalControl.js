@@ -96,14 +96,14 @@ class FractalControl {
       }
       this.generator.resetMirror();
     };
-    this.updatePointValuesFromGenerator = (generator) => {
+    this.updatePointValuesFromGenerator = () => {
       const linePointIndexes = this.lines.map((line) => {
     return {
       start: line.externalStartPointIndex,
       end: line.externalEndPointIndex,
     };
   });
-      const newPoints = getPointsFromGenerator(generator, linePointIndexes);
+      const newPoints = getPointsFromGenerator(this.generator, linePointIndexes);
 
       for (const [i, point] of this.points.entries()) {
         const newPoint = transformPoint(newPoints[i], this.baseLine);
