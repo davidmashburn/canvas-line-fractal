@@ -11,6 +11,10 @@ const RAINBOW_COLORS = [
   "violet",
 ];
 const MIN_DRAW_LENGTH = 1;
+const INITIAL_BASE_LINE_DATA = {
+  start: { x: 250, y: 250 },
+  end: { x: 600, y: 250 },
+};
 
 export {
   LINE_WIDTH,
@@ -18,4 +22,5 @@ export {
   ARROW_LENGTH,
   RAINBOW_COLORS,
   MIN_DRAW_LENGTH,
+  INITIAL_BASE_LINE_DATA,
 };

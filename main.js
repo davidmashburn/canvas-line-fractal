@@ -1,4 +1,6 @@
-import { zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
+import { INITIAL_BASE_LINE_DATA } from "./constants.js";
+
+import { uuid, zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
 
 import { getPointsFromGenerator } from "./generator.js";
 
@@ -46,96 +48,113 @@ function raw_draw(ctx, offScreenCanvas, fractalControls, drawingOptions) {
   }
 }
 
-var isDrawingLoop = true;
+class MainController {
+  constructor() {
+    this.isDrawingLoop = true; // global drawing controller
+    this.canvas = document.getElementById("mainCanvas");
+    this.offScreenCanvas = document.getElementById("offScreenCanvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.ctx_off = this.offScreenCanvas.getContext("2d");
+    this.startPoint = { x: 0, y: 0 }; // for use while moving points
+    this.drawingOptions = {
+      // global drawing options
+      maxDepth: false,
+      drawAllLines: false,
+    };
+    this.dropDownGeneratorDataOptions = Object.fromEntries(
+      Object.keys(exampleGenerators).map((key) => [key, exampleGenerators[key]])
+    );
+    this.fractalControls = [
+      new FractalControl(INITIAL_BASE_LINE_DATA, this.dropDownGeneratorDataOptions.Koch),
+    ];
+    this.canvasIsPanning = false;
+    this.origTwoFingerLine;
+    this.drawFractalIterator;
 
-function init() {
-  var this_canvas = document.getElementById("mainCanvas");
-  var this_offScreenCanvas = document.getElementById("offScreenCanvas");
-  var this_ctx = this_canvas.getContext("2d");
-  var this_ctx_off = this_offScreenCanvas.getContext("2d");
-  var startPoint = { x: 0, y: 0 };
-  var baseLineData = {
-    start: { x: 250, y: 250 },
-    end: { x: 600, y: 250 },
-  };
-  var this_drawingOptions = {
-    maxDepth: false,
-    drawAllLines: false,
-  };
-  var this_fractalControls = [
-    new FractalControl(baseLineData, exampleGenerators.Koch),
-  ];
-  var this_canvasIsPanning = false;
-  var this_origTwoFingerLine;
-  var this_drawFractalIterator;
-
-  function setupLeftPane() {
+    this.setupLeftPane();
+    resetCanvasSize(this.canvas, this.offScreenCanvas);
+    this.refreshDrawFractalIter();
+    registerPointerEvents(window, this.canvas, this.pointerCallback.bind(this));
+    raw_draw(
+      this.ctx,
+      this.offScreenCanvas,
+      this.fractalControls,
+      this.drawingOptions
+    );
+  }
+  setupLeftPane() {
     var presetsDropdown = document.getElementById("ChoosePreset");
     presetsDropdown.options.length = 0;
-    const presetNames = Object.keys(exampleGenerators);
+    const presetNames = Object.keys(this.dropDownGeneratorDataOptions);
     for (const name of presetNames) {
       presetsDropdown.options.add(new Option(name, name));
     }
     presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
 
     presetsDropdown.onchange = () => {
-      const baseLineData = cloneLine(this_fractalControls[0].baseLine);
-      this_fractalControls = [
+      const baseLineData = cloneLine(this.fractalControls[0].baseLine);
+      this.fractalControls = [
         new FractalControl(
           baseLineData,
-          exampleGenerators[presetsDropdown.value]
+          this.dropDownGeneratorDataOptions[presetsDropdown.value]
         ),
       ];
-      refreshDrawFractalIter(true);
+      this.refreshDrawFractalIter(true);
     };
     document.getElementById("StartStop").onclick = () => {
-      if (!isDrawingLoop) {
-        isDrawingLoop = true;
+      if (!this.isDrawingLoop) {
+        this.isDrawingLoop = true;
         loop();
       } else {
-        isDrawingLoop = false;
+        this.isDrawingLoop = false;
       }
     };
 
     document.getElementById("ResetZoom").onclick = () => {
-      for (const fractalControl of this_fractalControls) {
-        fractalControl.setBaseLine(baseLineData);
+      for (const fractalControl of this.fractalControls) {
+        fractalControl.setBaseLine(INITIAL_BASE_LINE_DATA);
       }
-      refreshDrawFractalIter(true);
+      this.refreshDrawFractalIter(true);
     };
     document.getElementById("LogGenerator").onclick = () => {
-      for (const fractalControl of this_fractalControls) {
+      for (const fractalControl of this.fractalControls) {
         const linePointIndexes = fractalControl.lines.map((line) => {
           return {
             start: line.externalStartPointIndex,
             end: line.externalEndPointIndex,
           };
         });
-        const pointData = getPointsFromGenerator(fractalControl.generator, linePointIndexes).map((p) => [p.x, -p.y]);
+        const pointData = getPointsFromGenerator(
+          fractalControl.generator,
+          linePointIndexes
+        ).map((p) => [p.x, -p.y]);
         const lineData = fractalControl.lines.map((line) => [
           line.externalStartPointIndex,
           line.externalEndPointIndex,
           line.mirrored,
         ]);
-        console.log({points:pointData, lines:lineData});
+        console.log({ points: pointData, lines: lineData });
       }
     };
   }
-
-  function refreshDrawFractalIter(clear_ctx_off = false) {
+  refreshDrawFractalIter(clear_ctx_off = false) {
     if (clear_ctx_off) {
-      this_ctx_off.clearRect(0, 0, this_ctx_off.canvas.width, this_ctx_off.canvas.height);
+      this.ctx_off.clearRect(
+        0,
+        0,
+        this.ctx_off.canvas.width,
+        this.ctx_off.canvas.height
+      );
     }
-    this_drawFractalIterator = getDrawFractalIterator(
-      this_ctx_off,
-      this_fractalControls[0].generator,
-      this_fractalControls[0].baseLine,
-      this_drawingOptions.maxDepth,
-      this_drawingOptions.drawAllLines
+    this.drawFractalIterator = getDrawFractalIterator(
+      this.ctx_off,
+      this.fractalControls[0].generator,
+      this.fractalControls[0].baseLine,
+      this.drawingOptions.maxDepth,
+      this.drawingOptions.drawAllLines
     );
   }
-
-  function pointerCallback(
+  pointerCallback(
     evtType,
     evtPoint,
     evtPoint2 = undefined,
@@ -144,61 +163,61 @@ function init() {
   ) {
     switch (evtType) {
       case "down":
-        startPoint = clonePoint(evtPoint);
-        this_canvasIsPanning = true;
+        this.startPoint = clonePoint(evtPoint);
+        this.canvasIsPanning = true;
 
-        for (const fractalControl of this_fractalControls) {
-          if (fractalControl.onDown(this_ctx, evtPoint)) {
-            this_canvasIsPanning = false;
+        for (const fractalControl of this.fractalControls) {
+          if (fractalControl.onDown(this.ctx, evtPoint)) {
+            this.canvasIsPanning = false;
             break;
           }
         }
         break;
 
       case "up":
-        for (const fractalControl of this_fractalControls) {
+        for (const fractalControl of this.fractalControls) {
           fractalControl.onUp();
         }
-        this_canvasIsPanning = false;
-        this_origTwoFingerLine = undefined;
+        this.canvasIsPanning = false;
+        this.origTwoFingerLine = undefined;
         break;
 
       case "move":
         const delta = {
-          x: evtPoint.x - startPoint.x,
-          y: evtPoint.y - startPoint.y,
+          x: evtPoint.x - this.startPoint.x,
+          y: evtPoint.y - this.startPoint.y,
         };
-        startPoint = clonePoint(evtPoint);
+        this.startPoint = clonePoint(evtPoint);
 
-        for (const fractalControl of this_fractalControls) {
+        for (const fractalControl of this.fractalControls) {
           fractalControl.onMove(evtPoint, delta);
         }
-        if (this_canvasIsPanning) {
-          for (const fractalControl of this_fractalControls) {
+        if (this.canvasIsPanning) {
+          for (const fractalControl of this.fractalControls) {
             fractalControl.translateAll(delta);
           }
         }
-        refreshDrawFractalIter(true);
+        this.refreshDrawFractalIter(true);
         break;
       case "two-finger":
-        if (this_canvasIsPanning) {
-          this_canvasIsPanning = false;
-          this_origTwoFingerLine = { start: evtPoint, end: evtPoint2 };
-          for (const fractalControl of this_fractalControls) {
+        if (this.canvasIsPanning) {
+          this.canvasIsPanning = false;
+          this.origTwoFingerLine = { start: evtPoint, end: evtPoint2 };
+          for (const fractalControl of this.fractalControls) {
             fractalControl.origBaseLine = cloneLine(fractalControl.baseLine);
           }
-        } else if (this_origTwoFingerLine) {
+        } else if (this.origTwoFingerLine) {
           let newTwoFingerLine = { start: evtPoint, end: evtPoint2 };
           let zoomedLine;
-          for (const fractalControl of this_fractalControls) {
+          for (const fractalControl of this.fractalControls) {
             zoomedLine = zoomTransformLine(
               fractalControl.origBaseLine,
-              this_origTwoFingerLine,
+              this.origTwoFingerLine,
               newTwoFingerLine
             );
             fractalControl.setBaseLine(zoomedLine);
           }
-          refreshDrawFractalIter(true);
+          this.refreshDrawFractalIter(true);
         }
         break;
       case "wheel":
@@ -214,7 +233,7 @@ function init() {
           newLine.end.x += evtDelta.y / 1000;
         }
         let zoomedLine;
-        for (const fractalControl of this_fractalControls) {
+        for (const fractalControl of this.fractalControls) {
           zoomedLine = zoomTransformLine(
             fractalControl.baseLine,
             oldLine,
@@ -222,54 +241,55 @@ function init() {
           );
           fractalControl.setBaseLine(zoomedLine);
         }
-        refreshDrawFractalIter(true);
+        this.refreshDrawFractalIter(true);
         break;
 
       case "resize":
         setTimeout(() => {
-          resetCanvasSize(this_canvas, this_offScreenCanvas);
-          refreshDrawFractalIter(true);
+          resetCanvasSize(this.canvas, this.offScreenCanvas);
+          this.refreshDrawFractalIter(true);
         }, 10); // delay is important!!
         break;
     }
 
-    raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
-  };
-
-  function draw(maxDepth, drawAllLines, hideControls, largeControls) {
-    this_drawingOptions.hideControls = hideControls;
-    this_drawingOptions.largeControls = largeControls;
+    raw_draw(
+      this.ctx,
+      this.offScreenCanvas,
+      this.fractalControls,
+      this.drawingOptions
+    );
+  }
+  draw(maxDepth, drawAllLines, hideControls, largeControls) {
+    this.drawingOptions.hideControls = hideControls;
+    this.drawingOptions.largeControls = largeControls;
     if (
-      this_drawingOptions.maxDepth != maxDepth ||
-      this_drawingOptions.drawAllLines != drawAllLines
+      this.drawingOptions.maxDepth != maxDepth ||
+      this.drawingOptions.drawAllLines != drawAllLines
     ) {
-      this_drawingOptions.maxDepth = maxDepth;
-      this_drawingOptions.drawAllLines = drawAllLines;
-      refreshDrawFractalIter(true);
+      this.drawingOptions.maxDepth = maxDepth;
+      this.drawingOptions.drawAllLines = drawAllLines;
+      this.refreshDrawFractalIter(true);
     }
     for (let i = 0; i < 100; i++) {
-      if (this_drawFractalIterator.next().done) {
-        refreshDrawFractalIter();
+      if (this.drawFractalIterator.next().done) {
+        this.refreshDrawFractalIter();
       }
     }
 
-    raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
+    raw_draw(
+      this.ctx,
+      this.offScreenCanvas,
+      this.fractalControls,
+      this.drawingOptions
+    );
   }
-
-  setupLeftPane();
-  resetCanvasSize(this_canvas, this_offScreenCanvas);
-  refreshDrawFractalIter();
-  registerPointerEvents(window, this_canvas, pointerCallback);
-  raw_draw(this_ctx, this_offScreenCanvas, this_fractalControls, this_drawingOptions);
-
-  return draw;
 }
 
-var draw = init();
-
-var MAX_REFRESH = 10000;
+// Globals:
+var mainController = new MainController();
 
 function loop() {
+  const maxRefreshRate = 10000;
   let refreshRate = document.getElementById("RefreshRate").value;
   let maxDepth = document.getElementById("Depth").value;
   let drawAllLines = document.getElementById("DrawAllLines").checked;
@@ -278,19 +298,19 @@ function loop() {
 
   if (!refreshRate) {
     refreshRate = 1;
-  } else if (MAX_REFRESH < refreshRate) {
-    refreshRate = MAX_REFRESH;
+  } else if (maxRefreshRate < refreshRate) {
+    refreshRate = maxRefreshRate;
   } else if (refreshRate < 1) {
     refreshRate = 1;
   }
   document.getElementById("RefreshRate").value = Math.floor(refreshRate);
   for (let i = 0; i < refreshRate; i++) {
-    if (!isDrawingLoop) {
+    if (!mainController.isDrawingLoop) {
       break;
     }
-    draw(maxDepth, drawAllLines, hideControls, largeControls);
+    mainController.draw(maxDepth, drawAllLines, hideControls, largeControls);
   }
-  if (isDrawingLoop) {
+  if (mainController.isDrawingLoop) {
     requestAnimFrame(loop);
   }
 }

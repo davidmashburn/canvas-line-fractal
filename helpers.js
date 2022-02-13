@@ -2,6 +2,13 @@ function rand(bottom, top) {
   return bottom + Math.floor(Math.random() * (top - bottom));
 }
 
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function roundPoint(point) {
   return { x: Math.round(point.x), y: Math.round(point.y) };
 }
@@ -160,6 +167,7 @@ function mirrorLine(line) {
 
 export {
   rand,
+  uuid,
   roundPoint,
   sqrtSumSqr,
   pointDist,
