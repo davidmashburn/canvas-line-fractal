@@ -66,4 +66,33 @@ function getPointsFromGenerator(generator, linePointIndexes) {
   return newPoints;
 }
 
-export { Generator, generatorFromData, getPointsFromGenerator };
+function generatorDataEqual(a, b, tol = 1e-10) {
+  if (a.lines.length != b.lines.length) {
+    return false;
+  }
+  if (a.points.length != b.points.length) {
+    return false;
+  }
+  for (let i = 0; i < a.lines.length; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (a.lines[i][j] != b.lines[i][j]) {
+        return false;
+      }
+    }
+  }
+  for (let i = 0; i < a.points.length; i++) {
+    for (let j = 0; j < 2; j++) {
+      if (Math.abs(a.points[i][j] - b.points[i][j]) > tol) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+export {
+  Generator,
+  generatorFromData,
+  getPointsFromGenerator,
+  generatorDataEqual,
+};

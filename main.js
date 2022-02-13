@@ -2,7 +2,7 @@ import { INITIAL_BASE_LINE_DATA } from "./constants.js";
 
 import { uuid, zoomTransformLine, clonePoint, cloneLine } from "./helpers.js";
 
-import { getPointsFromGenerator } from "./generator.js";
+import { generatorDataEqual } from "./generator.js";
 
 import { getDrawFractalIterator } from "./drawFractal.js";
 
@@ -65,7 +65,10 @@ class MainController {
       Object.keys(exampleGenerators).map((key) => [key, exampleGenerators[key]])
     );
     this.fractalControls = [
-      new FractalControl(INITIAL_BASE_LINE_DATA, this.dropDownGeneratorDataOptions.Koch),
+      new FractalControl(
+        INITIAL_BASE_LINE_DATA,
+        this.dropDownGeneratorDataOptions.Koch
+      ),
     ];
     this.canvasIsPanning = false;
     this.origTwoFingerLine;
@@ -82,6 +85,17 @@ class MainController {
       this.drawingOptions
     );
   }
+  saveCurrentGeneratorData(name = undefined) {
+    const currentGeneratorData = this.fractalControls[0].getGeneratorData();
+    const generatorDataExists = Object.values(
+      this.dropDownGeneratorDataOptions
+    ).some((g) => generatorDataEqual(g, currentGeneratorData));
+    if (!generatorDataExists) {
+      const newName = name ? name : uuid();
+      this.dropDownGeneratorDataOptions[newName] = currentGeneratorData;
+      return newName;
+    }
+  }
   setupLeftPane() {
     var presetsDropdown = document.getElementById("ChoosePreset");
     presetsDropdown.options.length = 0;
@@ -92,6 +106,10 @@ class MainController {
     presetsDropdown.selectedIndex = presetNames.indexOf("Koch");
 
     presetsDropdown.onchange = () => {
+      const newName = this.saveCurrentGeneratorData();
+      if (newName) {
+        presetsDropdown.options.add(new Option(newName, newName));
+      }
       const baseLineData = cloneLine(this.fractalControls[0].baseLine);
       this.fractalControls = [
         new FractalControl(
@@ -118,22 +136,7 @@ class MainController {
     };
     document.getElementById("LogGenerator").onclick = () => {
       for (const fractalControl of this.fractalControls) {
-        const linePointIndexes = fractalControl.lines.map((line) => {
-          return {
-            start: line.externalStartPointIndex,
-            end: line.externalEndPointIndex,
-          };
-        });
-        const pointData = getPointsFromGenerator(
-          fractalControl.generator,
-          linePointIndexes
-        ).map((p) => [p.x, -p.y]);
-        const lineData = fractalControl.lines.map((line) => [
-          line.externalStartPointIndex,
-          line.externalEndPointIndex,
-          line.mirrored,
-        ]);
-        console.log({ points: pointData, lines: lineData });
+        console.log(fractalControl.getGeneratorData());
       }
     };
   }

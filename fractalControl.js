@@ -209,5 +209,23 @@ class FractalControl {
       this.updateGeneratorValuesFromPoints();
     }
   }
+  getGeneratorData() {
+    const linePointIndexes = this.lines.map((line) => {
+      return {
+        start: line.externalStartPointIndex,
+        end: line.externalEndPointIndex,
+      };
+    });
+    const pointData = getPointsFromGenerator(
+      this.generator,
+      linePointIndexes
+    ).map((p) => [p.x, -p.y]);
+    const lineData = this.lines.map((line) => [
+      line.externalStartPointIndex,
+      line.externalEndPointIndex,
+      line.mirrored,
+    ]);
+    return { points: pointData, lines: lineData };
+  }
 }
 export { FractalControl };
