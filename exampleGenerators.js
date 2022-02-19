@@ -1,4 +1,6 @@
+const sq2 = Math.sqrt(2);
 const sq3 = Math.sqrt(3);
+const pi12 = Math.PI / 12;
 
 const SampleFractal = {
   points: [
@@ -187,6 +189,33 @@ var HexGrid = {
   ],
 };
 
+var Rectangle = {
+  points: [
+    [0, 0],
+    [1, 0],
+    [1, sq2 / 2],
+    [1, -sq2 / 2],
+  ],
+  lines: [
+    [0, 1, false],
+    [1, 2, false],
+    [1, 3, false],
+  ],
+}
+
+var Clock = {
+  points: [
+    [0, 0],
+    [1, 0],
+    [0.5 - Math.cos(pi12) / 2, -Math.sin(pi12) / 2],
+    [0.5 + Math.cos(pi12) / 2, Math.sin(pi12) / 2],
+  ],
+  lines: [
+    [0, 1, false],
+    [2, 3, false],
+  ],
+}
+
 export {
   SampleFractal,
   SampleFractal2,
@@ -200,4 +229,6 @@ export {
   MonkeysTree,
   BinaryTree,
   HexGrid,
+  Rectangle,
+  Clock,
 };
